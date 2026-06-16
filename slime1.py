@@ -42,6 +42,9 @@ class Slime1(pygame.sprite.Sprite):
         self.dx    = 0.0
         self.dy    = 0.0
 
+        self.run_speed_multiplier = 0.4   # Hệ số tốc độ chạy (0.1 - 1.0)
+        self.walk_speed_multiplier = 0.3  # Hệ số tốc độ đi bộ (0.1 - 1.0)
+
         
         self.walk_duration     = 1200   # ms trước khi chuyển sang run
         self.attack_range      = 60     #sát thương
@@ -263,9 +266,15 @@ class Slime1(pygame.sprite.Sprite):
                 self.state = "walk"
             return
 
-        speed   = RUN_SPEED * 0.4 if self.state == "run" else PLAYER_SPEED * 0.3
+        # ===== ĐÃ SỬA: Dùng biến tốc độ =====
+        if self.state == "run":
+            speed = RUN_SPEED * self.run_speed_multiplier
+        else:
+            speed = PLAYER_SPEED * self.walk_speed_multiplier
+        
         self.dx = (dx / dist) * speed
         self.dy = (dy / dist) * speed
+
 
     def _apply_movement(self, map_width, map_height):
         new_x = self.x + self.dx

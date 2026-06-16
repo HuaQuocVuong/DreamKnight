@@ -2,15 +2,15 @@
 
 # Kích thước cửa sổ hiển thị chính của game (tính bằng pixel)
 
-SCREEN_WIDTH = 1220  #1920  # Độ rộng cửa sổ game 800
-SCREEN_HEIGHT = 540  #1040  # Độ cao cửa sổ game 520
+#SCREEN_WIDTH = 1220  #1920  # Độ rộng cửa sổ game 800
+#SCREEN_HEIGHT = 540  #1040  # Độ cao cửa sổ game 520
 
-SCREEN_WIDTH = 1280 # Độ rộng cửa sổ game -100 cho đến khi phù hợp
-SCREEN_HEIGHT  = 720 # Độ cao cửa sổ game -100 cho đến khi phù hợp
+#SCREEN_WIDTH = 1280 # Độ rộng cửa sổ game -100 cho đến khi phù hợp
+#SCREEN_HEIGHT  = 720 # Độ cao cửa sổ game -100 cho đến khi phù hợp
 
 #Không xóa!!!!!!!
-#SCREEN_WIDTH = 1920 # Độ rộng cửa sổ game -100 cho đến khi phù hợp
-#SCREEN_HEIGHT  = 1040 # Độ cao cửa sổ game -100 cho đến khi phù hợp
+SCREEN_WIDTH = 1920 # Độ rộng cửa sổ game -100 cho đến khi phù hợp
+SCREEN_HEIGHT  = 1040 # Độ cao cửa sổ game -100 cho đến khi phù hợp
 
 
 # Kích thước vùng nhìn của camera (vùng thế giới game được hiển thị trong game_surface)

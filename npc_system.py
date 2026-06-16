@@ -256,13 +256,23 @@ class NPCSystem:
             npc = self.npc_data[self.active_npc_id]
             total_dialogues = len(npc["dialogues"])
 
+            # Sample NPC (id=1) - Chỉ bán vật phẩm
             if self.active_npc_id == 1 and self.current_step == total_dialogues - 1:
-                if key == pygame.K_LEFT or key == pygame.K_RIGHT:
-                    self.selected_option = 1 - self.selected_option
-                elif key == pygame.K_f:
+                # Sample NPC chỉ có 1 lựa chọn duy nhất là shop vật phẩm
+                if key == pygame.K_f:
                     self.is_showing_dialogue = False 
                     self.is_showing_shop = True     
-                    self.shop_type = "vat pham" if self.selected_option == 0 else "ky nang"
+                    self.shop_type = "vat pham"
+                    # Dừng voice khi đóng dialogue
+                    self.stop_current_voice()
+                return
+
+            # Hunter NPC (id=2) - Bán kỹ năng
+            if self.active_npc_id == 2 and self.current_step == total_dialogues - 1:
+                if key == pygame.K_f:
+                    self.is_showing_dialogue = False 
+                    self.is_showing_shop = True     
+                    self.shop_type = "ky nang"
                     # Dừng voice khi đóng dialogue
                     self.stop_current_voice()
                 return
@@ -321,24 +331,32 @@ class NPCSystem:
                 surface.blit(voice_icon, (SCREEN_WIDTH - 60, SCREEN_HEIGHT - 150))
             
             total_dialogues = len(npc["dialogues"])
+            
+            # Sample NPC (id=1) - Chỉ hiển thị nút vào shop vật phẩm
             if self.active_npc_id == 1 and self.current_step == total_dialogues - 1:
-                rect_item = pygame.Rect(70, SCREEN_HEIGHT - 75, 180, 35)
-                rect_skill = pygame.Rect(270, SCREEN_HEIGHT - 75, 180, 35)
-                color_item = (255, 215, 0) if self.selected_option == 0 else (100, 100, 100)
-                color_skill = (255, 215, 0) if self.selected_option == 1 else (100, 100, 100)
+                rect_item = pygame.Rect(70, SCREEN_HEIGHT - 75, 200, 35)
                 
                 pygame.draw.rect(surface, (40, 40, 40), rect_item, border_radius=5)
-                pygame.draw.rect(surface, color_item, rect_item, 2, border_radius=5)
-                pygame.draw.rect(surface, (40, 40, 40), rect_skill, border_radius=5)
-                pygame.draw.rect(surface, color_skill, rect_skill, 2, border_radius=5)
+                pygame.draw.rect(surface, (255, 215, 0), rect_item, 2, border_radius=5)
                 
-                txt_item = font_small.render("Shop Vat Pham", True, (255, 255, 255) if self.selected_option == 0 else (180, 180, 180))
-                txt_skill = font_small.render("Shop Ky Nang", True, (255, 255, 255) if self.selected_option == 1 else (180, 180, 180))
+                txt_item = font_small.render("Mo Shop Vat Pham", True, (255, 255, 255))
                 surface.blit(txt_item, (rect_item.x + 30, rect_item.y + 6))
-                surface.blit(txt_skill, (rect_skill.x + 35, rect_skill.y + 6))
                 
-                hint = font_small.render("[Mui ten Trai/Phai de chon - Nhan F de mo]", True, (0, 255, 255))
-                surface.blit(hint, (SCREEN_WIDTH - 380, SCREEN_HEIGHT - 60))
+                hint = font_small.render("[Nhan F de mo shop]", True, (0, 255, 255))
+                surface.blit(hint, (SCREEN_WIDTH - 280, SCREEN_HEIGHT - 60))
+                
+            # Hunter NPC (id=2) - Chỉ hiển thị nút vào shop kỹ năng
+            elif self.active_npc_id == 2 and self.current_step == total_dialogues - 1:
+                rect_skill = pygame.Rect(70, SCREEN_HEIGHT - 75, 200, 35)
+                
+                pygame.draw.rect(surface, (40, 40, 40), rect_skill, border_radius=5)
+                pygame.draw.rect(surface, (255, 215, 0), rect_skill, 2, border_radius=5)
+                
+                txt_skill = font_small.render("Mo Shop Ky Nang", True, (255, 255, 255))
+                surface.blit(txt_skill, (rect_skill.x + 30, rect_skill.y + 6))
+                
+                hint = font_small.render("[Nhan F de mo shop]", True, (0, 255, 255))
+                surface.blit(hint, (SCREEN_WIDTH - 280, SCREEN_HEIGHT - 60))
             else:
                 hint = font_small.render("[Nhan F de tiep tuc...]", True, (160, 160, 160))
                 surface.blit(hint, (SCREEN_WIDTH - 220, SCREEN_HEIGHT - 60))
@@ -356,28 +374,11 @@ class NPCSystem:
             title_surf = font_bold.render(title_text, True, (255, 215, 0))
             surface.blit(title_surf, (SCREEN_WIDTH // 2 - title_surf.get_width() // 2, shop_rect.y + 15))
             
-            # Tab chuyển đổi
-            tab_width = 130
-            tab_height = 30
-            tab_item_rect = pygame.Rect(shop_rect.x + 30, shop_rect.y + 50, tab_width, tab_height)
-            tab_skill_rect = pygame.Rect(shop_rect.x + 40 + tab_width, shop_rect.y + 50, tab_width, tab_height)
-            
-            bg_tab_item = (70, 55, 45) if self.shop_type == "vat pham" else (30, 25, 20)
-            bg_tab_skill = (70, 55, 45) if self.shop_type == "ky nang" else (30, 25, 20)
-            border_tab_item = (255, 215, 0) if self.shop_type == "vat pham" else (100, 100, 100)
-            border_tab_skill = (255, 215, 0) if self.shop_type == "ky nang" else (100, 100, 100)
-            
-            pygame.draw.rect(surface, bg_tab_item, tab_item_rect, border_radius=6)
-            pygame.draw.rect(surface, border_tab_item, tab_item_rect, 2, border_radius=6)
-            txt_tab_i = font_bold.render("Vat Pham", True, (255, 255, 255) if self.shop_type == "vat pham" else (160, 160, 160))
-            surface.blit(txt_tab_i, (tab_item_rect.x + (tab_width - txt_tab_i.get_width()) // 2, tab_item_rect.y + 3))
-            self.button_rects.append({"rect": tab_item_rect, "action": "change_tab", "tab_target": "vat pham", "item_index": -1})
-            
-            pygame.draw.rect(surface, bg_tab_skill, tab_skill_rect, border_radius=6)
-            pygame.draw.rect(surface, border_tab_skill, tab_skill_rect, 2, border_radius=6)
-            txt_tab_s = font_bold.render("Ky Nang", True, (255, 255, 255) if self.shop_type == "ky nang" else (160, 160, 160))
-            surface.blit(txt_tab_s, (tab_skill_rect.x + (tab_width - txt_tab_s.get_width()) // 2, tab_skill_rect.y + 3))
-            self.button_rects.append({"rect": tab_skill_rect, "action": "change_tab", "tab_target": "ky nang", "item_index": -1})
+            # Vì mỗi NPC chỉ có 1 loại shop nên không cần tab chuyển đổi
+            # Hiển thị tên NPC đang bán
+            npc_name = "Sample" if self.active_npc_id == 1 else "The Hunter"
+            npc_label = font_small.render(f"Nguoi ban: {npc_name}", True, (200, 200, 200))
+            surface.blit(npc_label, (shop_rect.x + 30, shop_rect.y + 50))
             
             # Hiển thị vàng
             gold_surf = font_bold.render(f"Vang: {player.gold}", True, (255, 255, 0))

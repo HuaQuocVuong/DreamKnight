@@ -206,6 +206,10 @@ class Game:
                         self.player.x               = 400
                         self.player.y               = 450
                         self.player.rect.center     = (400, 450)
+
+                        self.player.direction       = "down"
+                        self.player.image           = self.player.idle_animations["down"].current_frame
+                        
                         # Reset vàng và cấp kĩ năng
                         self.player.gold                 = 0
                         self.player.attack_damage_level  = 0

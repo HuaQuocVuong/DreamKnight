@@ -66,12 +66,12 @@ SLIME2_ANIMATION_CONFIGS = {
 
 # Thời gian mỗi frame (ms) cho từng loại animation
 FRAME_DURATIONS = {
-    "idle":   200,
-    "walk":   100,
-    "run":    90,
-    "attack": 70,
-    "hit":    75,
-    "death":  85,
+    "idle":   100,
+    "walk":   50,
+    "run":    30,
+    "attack": 30,
+    "hit":    50,
+    "death":  50,
 }
 
 # Màu fallback khi không tìm thấy sprite
