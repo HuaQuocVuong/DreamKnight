@@ -38,7 +38,7 @@ class NPCSystem:
         # Kịch bản hội thoại NPC (có thêm đường dẫn file voice)
         self.npc_data = {
             1: {
-                "name": "Sample",
+                "name": "Iselda",
                 "dialogues": {
                     0: "Chao Knight, nguoi trong co ve can su giup do...",
                     1: "Ta co nhung mon do co the giup do nguoi.",
@@ -376,7 +376,7 @@ class NPCSystem:
             
             # Vì mỗi NPC chỉ có 1 loại shop nên không cần tab chuyển đổi
             # Hiển thị tên NPC đang bán
-            npc_name = "Sample" if self.active_npc_id == 1 else "The Hunter"
+            npc_name = "Iselda" if self.active_npc_id == 1 else "The Hunter"
             npc_label = font_small.render(f"Nguoi ban: {npc_name}", True, (200, 200, 200))
             surface.blit(npc_label, (shop_rect.x + 30, shop_rect.y + 50))
             

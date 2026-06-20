@@ -49,12 +49,6 @@ class Game:
             animation_folder=None, frame_duration=None, scale=2.0,
         )
 
-        self.sampleNPC_object = GameObject(
-            x=1100, y=300,
-            image_path=None,
-            animation_folder="assets/sample", frame_duration=0.1, scale=1.0,
-        )
-
     
         self.home002_object = GameObject(
             x=1500, y=10,
@@ -110,6 +104,12 @@ class Game:
             x=1430, y=200,
             image_path="assets/fruit_basket/fruit_basket_03.png",
             animation_folder=None, frame_duration=2.0, scale=2.0,
+        )
+
+        self.sampleNPC_object = GameObject(
+            x=1290, y=235,
+            image_path=None,
+            animation_folder="assets/sample01", frame_duration=1, scale=2.0,
         )
 
         # Hàng rào
@@ -333,9 +333,9 @@ class Game:
         return [
             self.home001_object, self.home002_object, self.chimney_home2_object,
             self.home003_object, self.flag1_object,
+            self.fruit_pasket_01, self.fruit_pasket_02, self.fruit_pasket_03,
             self.lunebladeNPC_object, self.sampleNPC_object,
             self.tree_01_object,
-            self.fruit_pasket_01, self.fruit_pasket_02, self.fruit_pasket_03,
             self.home_base01_object, self.dragonHome001_object,
             *self.fences,
         ]

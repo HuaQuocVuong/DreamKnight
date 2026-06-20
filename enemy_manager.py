@@ -20,7 +20,7 @@ from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT
 # WAVE_ORDER: Xác định thứ tự các đợt quái sẽ xuất hiện
 # Mỗi đợt sẽ spawn một loại quái khác nhau theo thứ tự này
 WAVE_ORDER = [
-    "slime3",
+    #"slime3",
     "slime3",    # Đợt 1: Slime cấp 1 (yếu nhất)
     "slime2",    # Đợt 2: Slime cấp 2 (trung bình)
     "slime3",    # Đợt 3: Slime cấp 3 (mạnh nhất)
