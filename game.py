@@ -39,6 +39,7 @@ class Game:
 
         self.running   = True
         self.game_over = False
+        self.victory   = False  # Trạng thái chiến thắng khi hết tất cả wave
         self.ui         = UI()
         self.pause_menu = PauseMenu()
 
@@ -223,10 +224,46 @@ class Game:
                         self.game_over              = False
                         pygame.mixer.music.unpause()
 
+                if self.victory:
+                    box_w, box_h = 420, 300
+                    box_x = (SCREEN_WIDTH  - box_w) // 2
+                    box_y = (SCREEN_HEIGHT - box_h) // 2
+                    btn_w, btn_h = 230, 48
+                    btn_x = box_x + (box_w - btn_w) // 2
+                    if pygame.Rect(btn_x, box_y + 160, btn_w, btn_h).collidepoint(event.pos):
+                        # Reset máu và trạng thái player
+                        self.player.health          = self.player.max_health
+                        self.player.is_dead         = False
+                        self.player.ghost_mode      = False
+                        self.player.ghost_used      = False
+                        self.player.ghost_start_time = 0
+                        self.player.x               = 400
+                        self.player.y               = 450
+                        self.player.rect.center     = (400, 450)
+                        self.player.direction       = "down"
+                        self.player.image           = self.player.idle_animations["down"].current_frame
+                        # Reset vàng và cấp kĩ năng
+                        self.player.gold                 = 0
+                        self.player.attack_damage_level  = 0
+                        self.player.attack_speed_level   = 0
+                        self.player.dash_upgrade_level   = 0
+                        self.player.range_upgrade_level  = 0
+                        self.player.damage               = 50
+                        self.player.dash_cooldown        = 500
+                        # Reset wave và quái
+                        self.enemies = EnemyManager(self.player)
+                        self.victory                = False
+                        pygame.mixer.music.unpause()
+
             elif event.type == pygame.KEYDOWN:
                 self.npc_manager.handle_keydown(event.key)
 
                 if self.game_over:
+                    if event.key == pygame.K_ESCAPE:
+                        self.running = False
+                    continue
+
+                if self.victory:
                     if event.key == pygame.K_ESCAPE:
                         self.running = False
                     continue
@@ -256,7 +293,7 @@ class Game:
                 elif event.key == pygame.K_DOWN:
                     self.change_volume(-0.1)
 
-        if self.pause_menu.visible or self.game_over:
+        if self.pause_menu.visible or self.game_over or self.victory:
             return []
         return events
 
@@ -269,8 +306,8 @@ class Game:
             events = self.handle_events()
 
             dt = self.clock.get_time()
-            # Nếu đang chết hoặc đang ở Pause Menu thì dừng toàn bộ logic cập nhật game
-            if self.game_over or self.pause_menu.visible:
+            # Nếu đang chết, đang chiến thắng, hoặc đang ở Pause Menu thì dừng toàn bộ logic cập nhật game
+            if self.game_over or self.victory or self.pause_menu.visible:
                 return
 
             # 2. Cập nhật hệ thống tương tác và quét khoảng cách NPC (Bắt buộc truyền thêm "self")
@@ -287,6 +324,12 @@ class Game:
             # 4. Kiểm tra điều kiện sập nguồn của Hiệp sĩ chính
             if self.player.is_dead and not self.game_over:
                 self.game_over = True
+                pygame.mixer.music.pause()
+                pygame.mixer.stop()
+
+            # 4b. Kiểm tra điều kiện chiến thắng (đã hết tất cả wave quái)
+            if self.enemies.all_waves_completed and not self.victory:
+                self.victory = True
                 pygame.mixer.music.pause()
                 pygame.mixer.stop()
 
@@ -318,7 +361,7 @@ class Game:
         scaled_surface = pygame.transform.scale(self.game_surface, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.screen.blit(scaled_surface, (0, 0))
 
-        self.ui.draw(self.screen, self.player, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.ui.draw(self.screen, self.player, SCREEN_WIDTH, SCREEN_HEIGHT, self.victory)
         self.pause_menu.draw(self.screen, SCREEN_WIDTH, SCREEN_HEIGHT,
                              sound_manager.get_music_volume(), sound_manager.get_sfx_volume())
         self.npc_manager.draw(self.screen, self.camera, self)
