@@ -69,8 +69,8 @@ FRAME_DURATIONS = {
     "walk":   100,
     "run":    90,
     "attack": 70,
-    "hit":    75,
-    "death":  85,
+    "hit":    60,
+    "death":  50,
 }
 
 FALLBACK_COLOR = (34, 139, 34)  # Forest Green

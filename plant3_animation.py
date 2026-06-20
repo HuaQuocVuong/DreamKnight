@@ -70,7 +70,7 @@ FRAME_DURATIONS = {
     "run":    90,
     "attack": 70,
     "hit":    75,
-    "death":  85,
+    "death":  50,
 }
 
 FALLBACK_COLOR = (0, 100, 0)  # Dark Green

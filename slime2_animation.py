@@ -68,9 +68,9 @@ SLIME2_ANIMATION_CONFIGS = {
 FRAME_DURATIONS = {
     "idle":   100,
     "walk":   50,
-    "run":    30,
-    "attack": 30,
-    "hit":    50,
+    "run":    60,
+    "attack": 40,
+    "hit":    80,
     "death":  50,
 }
 

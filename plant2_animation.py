@@ -67,10 +67,10 @@ PLANT2_ANIMATION_CONFIGS = {
 FRAME_DURATIONS = {
     "idle":   200,
     "walk":   100,
-    "run":    90,
-    "attack": 70,
-    "hit":    75,
-    "death":  85,
+    "run":    150,
+    "attack": 120,
+    "hit":    50,
+    "death":  50,
 }
 
 FALLBACK_COLOR = (50, 205, 50)  # Lime Green

@@ -106,7 +106,7 @@ class Slime1(pygame.sprite.Sprite):
             for i in range(1, 3):
                 path = os.path.join(sound_path, f"Attack{i}.mp3")
                 self.attack_sounds.append(pygame.mixer.Sound(path))
-            self.hit_sound   = pygame.mixer.Sound(os.path.join(sound_path, "hit.mp3"))
+            self.hit_sound   = pygame.mixer.Sound(os.path.join(sound_path, "hit0.mp3"))
             self.death_sound = pygame.mixer.Sound(os.path.join(sound_path, "Death.mp3"))
         except Exception as e:
             print(f"[Slime1] Lỗi load âm thanh: {e}")

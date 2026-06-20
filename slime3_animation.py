@@ -68,10 +68,10 @@ SLIME3_ANIMATION_CONFIGS = {
 FRAME_DURATIONS = {
     "idle":   200,
     "walk":   100,
-    "run":    90,
-    "attack": 70,
-    "hit":    75,
-    "death":  85,
+    "run":    70,
+    "attack": 60,
+    "hit":    80,
+    "death":  50,
 }
 
 # Màu fallback khi không tìm thấy sprite

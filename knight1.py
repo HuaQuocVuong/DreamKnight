@@ -190,12 +190,12 @@ class Player1(pygame.sprite.Sprite):
         self.gold = 0
         self.is_dead = False
         
-        # GHOST MODE
+        # ===== SỬA ĐỔI: GHOST MODE (BẤT TỬ KHI BỊ MẤT MÁU) =====
         self.ghost_mode = False
         self.ghost_start_time = 0
-        self.ghost_duration = 1500
-        self.ghost_used = False
-        self.ghost_alpha = 80
+        self.ghost_duration = 1500  # 1.5 giây bất tử
+        self.ghost_alpha = 100  # Độ mờ khi ghost mode (0-255, 255 là đục)
+        self.ghost_flicker = False  # Hiệu ứng nhấp nháy
 
         self.damage = 15
         self.attack_range = 60
@@ -223,6 +223,12 @@ class Player1(pygame.sprite.Sprite):
         if self.is_dead or self.is_dashing:
             return
         
+        # ===== SỬA ĐỔI: KÍCH HOẠT GHOST MODE KHI BỊ MẤT MÁU =====
+        # Kích hoạt ghost mode ngay lập tức khi bị tấn công
+        self.ghost_mode = True
+        self.ghost_start_time = pygame.time.get_ticks()
+        print("🛡️ Player kích hoạt ghost mode - bất tử 1.5s!")
+        
         # Trừ máu
         self.health = max(0, self.health - damage)
         print(f"💥 Player nhận {damage} sát thương! Máu còn: {self.health}/{self.max_health}")
@@ -232,13 +238,6 @@ class Player1(pygame.sprite.Sprite):
             self.hit_sound.play()
         except:
             pass
-        
-        # Kích hoạt ghost mode nếu HP <= 20%
-        if self.health <= self.max_health * 0.2 and not self.ghost_used:
-            self.ghost_mode = True
-            self.ghost_used = True
-            self.ghost_start_time = pygame.time.get_ticks()
-            print("⚠️ HP thấp! Ghost mode 2 giây!")
         
         # Kiểm tra chết
         if self.health <= 0:
@@ -325,6 +324,28 @@ class Player1(pygame.sprite.Sprite):
         self.y = max(0, min(new_y, map_height - self.height))
         self.rect.x = self.x
         self.rect.y = self.y
+
+    # ===== SỬA ĐỔI: UPDATE GHOST MODE =====
+    def update_ghost_mode(self):
+        """Cập nhật trạng thái ghost mode (bất tử khi bị mất máu)"""
+        if not self.ghost_mode:
+            return
+            
+        current_time = pygame.time.get_ticks()
+        
+        # Kiểm tra hết thời gian ghost mode
+        if current_time - self.ghost_start_time >= self.ghost_duration:
+            self.ghost_mode = False
+            print("👻 Hết ghost mode! Trở lại bình thường.")
+            return
+        
+        # Hiệu ứng nhấp nháy khi sắp hết thời gian (trong 0.5s cuối)
+        remaining = self.ghost_duration - (current_time - self.ghost_start_time)
+        if remaining < 500:  # 0.5s cuối
+            # Nhấp nháy với tần số 10Hz
+            self.ghost_flicker = (current_time // 100) % 2 == 0
+        else:
+            self.ghost_flicker = False
 
     def handle_input(self, events):
         """Xử lý input từ bàn phím và chuột"""
@@ -590,14 +611,10 @@ class Player1(pygame.sprite.Sprite):
         if self.is_dead:
             return
         
-        # Nếu đang ghost mode thì không nhận damage
+        # ===== SỬA ĐỔI: Nếu đang ghost mode thì không nhận damage =====
         if self.ghost_mode:
-            current_time = pygame.time.get_ticks()
-            if current_time - self.ghost_start_time < self.ghost_duration:
-                print("🛡️ Player đang ghost mode - miễn sát thương!")
-                return
-            else:
-                self.ghost_mode = False
+            print("🛡️ Player đang ghost mode - miễn sát thương!")
+            return
         
         # Gọi hàm trigger_hit để xử lý hit
         self.trigger_hit(damage, knockback_direction)
@@ -665,11 +682,8 @@ class Player1(pygame.sprite.Sprite):
     def update(self, map_width, map_height, events):
         """Cập nhật toàn bộ trạng thái nhân vật mỗi frame"""
 
-        if self.ghost_mode and not self.is_dead:
-            current_time = pygame.time.get_ticks()
-            if current_time - self.ghost_start_time >= self.ghost_duration:
-                self.ghost_mode = False
-                print("👻 Hết ghost mode! Trở lại bình thường.")
+        # ===== SỬA ĐỔI: Cập nhật ghost mode =====
+        self.update_ghost_mode()
 
         # Xử lý input
         self.handle_input(events)
@@ -794,19 +808,32 @@ class Player1(pygame.sprite.Sprite):
             screen_x = self.x - camera.x
             screen_y = self.y - camera.y
             
-            # Xử lý ghost mode (mờ dần)
+            # ===== SỬA ĐỔI: Xử lý ghost mode (mờ dần) =====
             if self.ghost_mode and not self.is_dead:
                 # Tạo bản sao với alpha
                 ghost_image = self.image.copy()
-                ghost_image.set_alpha(self.ghost_alpha)  # Độ mờ
+                
+                # Tính alpha dựa trên thời gian còn lại
+                current_time = pygame.time.get_ticks()
+                elapsed = current_time - self.ghost_start_time
+                remaining = self.ghost_duration - elapsed
+                
+                # Nếu đang trong 0.5s cuối và flicker được bật thì làm nhấp nháy
+                if self.ghost_flicker:
+                    # Nhấp nháy: alpha thay đổi giữa 100 và 50
+                    alpha = 80 if (current_time // 100) % 2 == 0 else 150
+                else:
+                    # Bình thường: alpha = 100
+                    alpha = 100
+                
+                ghost_image.set_alpha(alpha)
                 screen.blit(ghost_image, (screen_x, screen_y))
                 
                 # Hiển thị thời gian ghost còn lại (debug)
                 if self.debug:
-                    current_time = pygame.time.get_ticks()
-                    remaining = max(0, (self.ghost_start_time + self.ghost_duration - current_time) // 1000)
+                    remaining_sec = max(0, remaining / 1000)
                     font = pygame.font.SysFont("Arial", 16)
-                    ghost_text = font.render(f"👻 {remaining}s", True, (200, 200, 255))
+                    ghost_text = font.render(f"🛡️ {remaining_sec:.1f}s", True, (200, 200, 255))
                     screen.blit(ghost_text, (screen_x, screen_y - 30))
             else:
                 # Vẽ bình thường
