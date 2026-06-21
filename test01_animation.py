@@ -8,69 +8,69 @@ from knight1_animation import Animation
 
 TEST01_ANIMATION_CONFIGS = {
     "idle": {
-        "folder": "slime3_idle",
+        "folder": "vampires1_idle",
         "directions": {
-            "up":    {"prefix": "slime3_idle_up",    "frames": 6},
-            "down":  {"prefix": "slime3_idle_down",  "frames": 6},
-            "left":  {"prefix": "slime3_idle_left",  "frames": 6},
-            "right": {"prefix": "slime3_idle_right", "frames": 6},
+            "up":    {"prefix": "vampires1_idle_up",    "frames": 4},
+            "down":  {"prefix": "vampires1_idle_down",  "frames": 4},
+            "left":  {"prefix": "vampires1_idle_left",  "frames": 4},
+            "right": {"prefix": "vampires1_idle_right", "frames": 4},
         },
     },
     "walk": {
-        "folder": "slime3_walk",
+        "folder": "vampires1_walk",
         "directions": {
-            "up":    {"prefix": "slime3_walk_up",    "frames": 8},
-            "down":  {"prefix": "slime3_walk_down",  "frames": 8},
-            "left":  {"prefix": "slime3_walk_left",  "frames": 8},
-            "right": {"prefix": "slime3_walk_right", "frames": 8},
+            "up":    {"prefix": "vampires1_walk_up",    "frames": 6},
+            "down":  {"prefix": "vampires1_walk_down",  "frames": 6},
+            "left":  {"prefix": "vampires1_walk_left",  "frames": 6},
+            "right": {"prefix": "vampires1_walk_right", "frames": 6},
         },
     },
     "run": {
-        "folder": "slime3_run",
+        "folder": "vampires1_run",
         "directions": {
-            "up":    {"prefix": "slime3_run_up",    "frames": 8},
-            "down":  {"prefix": "slime3_run_down",  "frames": 8},
-            "left":  {"prefix": "slime3_run_left",  "frames": 8},
-            "right": {"prefix": "slime3_run_right", "frames": 8},
+            "up":    {"prefix": "vampires1_run_up",    "frames": 8},
+            "down":  {"prefix": "vampires1_run_down",  "frames": 8},
+            "left":  {"prefix": "vampires1_run_left",  "frames": 8},
+            "right": {"prefix": "vampires1_run_right", "frames": 8},
         },
     },
     "attack": {
-        "folder": "slime3_attack",
+        "folder": "vampires1_attack",
         "directions": {
-            "up":    {"prefix": "slime3_attack_up",    "frames": 9},
-            "down":  {"prefix": "slime3_attack_down",  "frames": 9},
-            "left":  {"prefix": "slime3_attack_left",  "frames": 9},
-            "right": {"prefix": "slime3_attack_right", "frames": 9},
+            "up":    {"prefix": "vampires1_attack_up",    "frames": 9},
+            "down":  {"prefix": "vampires1_attack_down",  "frames": 9},
+            "left":  {"prefix": "vampires1_attack_left",  "frames": 9},
+            "right": {"prefix": "vampires1_attack_right", "frames": 9},
         },
     },
     "hit": {
-        "folder": "slime3_hurt",
+        "folder": "vampires1_hurt",
         "directions": {
-            "up":    {"prefix": "slime3_hurt_up",    "frames": 5},
-            "down":  {"prefix": "slime3_hurt_down",  "frames": 5},
-            "left":  {"prefix": "slime3_hurt_left",  "frames": 5},
-            "right": {"prefix": "slime3_hurt_right", "frames": 5},
+            "up":    {"prefix": "vampires1_hurt_up",    "frames": 4},
+            "down":  {"prefix": "vampires1_hurt_down",  "frames": 4},
+            "left":  {"prefix": "vampires1_hurt_left",  "frames": 4},
+            "right": {"prefix": "vampires1_hurt_right", "frames": 4},
         },
     },
     "death": {
-        "folder": "slime3_die",
+        "folder": "vampires1_death",
         "directions": {
-            "up":    {"prefix": "slime3_die_up",    "frames": 6},
-            "down":  {"prefix": "slime3_die_down",  "frames": 6},
-            "left":  {"prefix": "slime3_die_left",  "frames": 6},
-            "right": {"prefix": "slime3_die_right", "frames": 6},
+            "up":    {"prefix": "vampires1_death_up",    "frames": 11},
+            "down":  {"prefix": "vampires1_death_down",  "frames": 11},
+            "left":  {"prefix": "vampires1_death_left",  "frames": 11},
+            "right": {"prefix": "vampires1_death_right", "frames": 11},
         },
     },
 }
 
 # Thời gian mỗi frame (ms) cho từng loại animation
 FRAME_DURATIONS = {
-    "idle":   200,
+    "idle":   100,
     "walk":   100,
     "run":    90,
-    "attack": 70,
+    "attack": 80,
     "hit":    75,
-    "death":  85,
+    "death":  50,
 }
 
 # Màu fallback khi không tìm thấy sprite
@@ -87,7 +87,7 @@ class Test01AnimationLoader:
     Trả về dict: { anim_type: { direction: Animation } }
     """
 
-    BASE_PATH = os.path.join("assets", "resource_slime1_2_3", "slime_3")
+    BASE_PATH = os.path.join("assets", "resource_vampires1_2_3", "vampires1")
 
     @classmethod
     def load_all(cls, scale_factor: float = 2.0) -> dict:

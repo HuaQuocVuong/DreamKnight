@@ -42,12 +42,12 @@ class Test01(pygame.sprite.Sprite):
         self.dx    = 0.0
         self.dy    = 0.0
 
-        
-        self.home_chase_radius = 250
-        self.home_leave_radius = 450
+        self.run_speed_multiplier = 0.4   # Hệ số tốc độ chạy (0.1 - 1.0)
+        self.walk_speed_multiplier = 0.3  # Hệ số tốc độ đi bộ (0.1 - 1.0)
+
         self.walk_duration     = 1200   # ms trước khi chuyển sang run
-        self.attack_range      = 45
-        self.attack_duration   = 600    # ms cho animation tấn công
+        self.attack_range      = 45     # phạm vi tấn công
+        self.attack_duration   = 700   # ms cho animation tấn công
 
         self.walk_start_time      = 0
         self.is_running           = False
@@ -55,7 +55,7 @@ class Test01(pygame.sprite.Sprite):
         self.attack_sound_index   = 0
 
         # Máu
-        self.health     = 500
+        self.health     = 800
         self.contact_damage = 15         # Sát thương khi chạm vào player
         self.max_health = 500
 
@@ -83,9 +83,7 @@ class Test01(pygame.sprite.Sprite):
         self.rect   = self.image.get_rect(center=(self.x, self.y))
         self.width  = self.image.get_width()
         self.height = self.image.get_height()
-        #self.body_radius = max(self.width, self.height) // 2
-        self.body_radius = 20 #int(min(self.width, self.height) * 0.2)  # 60% kích thước
-        
+        self.body_radius = 20
         
         # Debug
         #self.debug = True
@@ -120,6 +118,7 @@ class Test01(pygame.sprite.Sprite):
         self.player = player
 
     def take_damage(self, damage) -> bool:
+        """Nhận sát thương từ player"""
         if self.is_dead or self.is_invincible:
             return False
 
@@ -135,6 +134,7 @@ class Test01(pygame.sprite.Sprite):
         return True
 
     def die(self):
+        """Xử lý khi chết"""
         if self.is_dead:
             return
         self.is_dead        = True
@@ -148,7 +148,7 @@ class Test01(pygame.sprite.Sprite):
             self.death_anims[self.direction].reset()
 
     def get_hitbox(self):
-        #return (self.x + self.width // 2, self.y + self.height // 2, self.body_radius)
+        """Lấy hitbox của quái"""
         return (self.rect.centerx, self.rect.centery, self.body_radius)
 
     # ------------------------------------------------------------------
@@ -156,6 +156,7 @@ class Test01(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def update(self, delta_time, map_width, map_height):
+        """Cập nhật trạng thái và vị trí của quái mỗi frame"""
         if self.player is None:
             return
 
@@ -189,31 +190,33 @@ class Test01(pygame.sprite.Sprite):
 
         # --- Tính khoảng cách ---
         px, py           = self._player_center()
-        home_cx, home_cy = self._home_center()
         slime_cx         = self.x + self.width  // 2
         slime_cy         = self.y + self.height // 2
-
-        dist_player_to_home = math.hypot(px - home_cx,   py - home_cy)
-        dist_to_player      = math.hypot(slime_cx - px,  slime_cy - py)
+        dist_to_player   = math.hypot(slime_cx - px,  slime_cy - py)
 
         # Cập nhật hướng nhìn về phía player
         self._update_direction(px, py)
 
-        # Kích hoạt tấn công
-        if dist_to_player <= self.attack_range and self.state not in ("attack", "return_home"):
+        # Kích hoạt tấn công nếu player trong phạm vi
+        if dist_to_player <= self.attack_range and self.state != "attack":
             self._start_attack(current_time)
             return
 
-        # Cập nhật trạng thái AI theo vùng
-        self._update_state_by_zone(dist_player_to_home, current_time)
+        # Bỏ cơ chế về nhà - luôn đuổi theo player
+        if self.state == "idle":
+            # Khi thấy player, chuyển sang trạng thái đi bộ
+            self.state = "walk"
+            self.walk_start_time = current_time
+            self.is_running = False
+        elif self.state == "walk":
+            # Sau thời gian walk_duration, chuyển sang chạy
+            if current_time - self.walk_start_time >= self.walk_duration:
+                self.state = "run"
+                self.is_running = True
 
-        # Xử lý về nhà
-        if self.state == "return_home":
-            self._handle_return_home(home_cx, home_cy)
-        elif self.state in ("walk", "run"):
+        # Đuổi theo player
+        if self.state in ("walk", "run"):
             self._handle_chase(px, py)
-        elif self.state == "idle":
-            self.dx = self.dy = 0
 
         # Cập nhật vị trí
         self._apply_movement(map_width, map_height)
@@ -224,18 +227,14 @@ class Test01(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _player_center(self):
+        """Lấy tọa độ trung tâm của player"""
         return (
             self.player.x + self.player.width  // 2,
             self.player.y + self.player.height // 2,
         )
 
-    def _home_center(self):
-        return (
-            self.home_x + self.width  // 2,
-            self.home_y + self.height // 2,
-        )
-
     def _update_direction(self, px, py):
+        """Cập nhật hướng nhìn dựa vào vị trí player"""
         angle = math.atan2(py - (self.y + self.height // 2),
                            px - (self.x + self.width  // 2))
         if abs(angle) < math.pi / 4:
@@ -247,62 +246,31 @@ class Test01(pygame.sprite.Sprite):
         else:
             self.direction = "up"
 
-    def _update_state_by_zone(self, dist_player_to_home, current_time):
-        if dist_player_to_home <= self.home_chase_radius:
-            if self.state == "idle":
-                self.state          = "walk"
-                self.walk_start_time = current_time
-                self.is_running     = False
-                print("[Test01] Phát hiện player — bắt đầu đuổi")
-            elif self.state == "walk":
-                if current_time - self.walk_start_time >= self.walk_duration:
-                    self.state      = "run"
-                    self.is_running = True
-                    print("[Test01] Chuyển sang chạy!")
-            elif self.state == "return_home":
-                self.state          = "walk"
-                self.walk_start_time = current_time
-                self.is_running     = False
-        elif dist_player_to_home > self.home_leave_radius:
-            if self.state not in ("return_home", "idle", "attack"):
-                self.state      = "return_home"
-                self.is_running = False
-                print("[Test01] Player ra khỏi vùng — quay về nhà")
-
-    def _handle_return_home(self, home_cx, home_cy):
-        dx = home_cx - (self.x + self.width  // 2)
-        dy = home_cy - (self.y + self.height // 2)
-        dist = math.hypot(dx, dy)
-
-        if dist < 10:
-            self.state = "idle"
-            self.dx = self.dy = 0
-            self.x, self.y    = self.home_x, self.home_y
-            self.rect.x, self.rect.y = self.x, self.y
-            print("[Test01] Đã về nhà!")
-        else:
-            speed    = PLAYER_SPEED * 0.5
-            self.dx  = (dx / dist) * speed
-            self.dy  = (dy / dist) * speed
-            self.direction = ("right" if dx > 0 else "left") if abs(dx) > abs(dy) \
-                             else ("down" if dy > 0 else "up")
-
     def _handle_chase(self, target_x, target_y):
+        """Xử lý đuổi theo player"""
         dx = target_x - (self.x + self.width  // 2)
         dy = target_y - (self.y + self.height // 2)
         dist = math.hypot(dx, dy)
 
+        # Dừng lại nếu đã đến gần player
         if dist <= self.attack_range or dist <= 5:
             self.dx = self.dy = 0
             if self.state == "run":
                 self.state = "walk"
             return
 
-        speed   = RUN_SPEED * 0.6 if self.state == "run" else PLAYER_SPEED * 0.4
+        # Tính tốc độ dựa trên trạng thái
+        if self.state == "run":
+            speed = RUN_SPEED * self.run_speed_multiplier
+        else:
+            speed = PLAYER_SPEED * self.walk_speed_multiplier
+        
+        # Di chuyển về phía player
         self.dx = (dx / dist) * speed
         self.dy = (dy / dist) * speed
 
     def _apply_movement(self, map_width, map_height):
+        """Áp dụng di chuyển với giới hạn bản đồ"""
         new_x = self.x + self.dx
         new_y = self.y + self.dy
         if 0 <= new_x <= map_width  - self.width:
@@ -317,6 +285,7 @@ class Test01(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _start_hit(self):
+        """Bắt đầu trạng thái bị thương"""
         self.state          = "hit"
         self.hit_start_time = pygame.time.get_ticks()
         self.dx = self.dy   = 0
@@ -328,6 +297,7 @@ class Test01(pygame.sprite.Sprite):
             self.hit_anims[self.direction].reset()
 
     def _start_attack(self, current_time):
+        """Bắt đầu trạng thái tấn công"""
         self.state              = "attack"
         self.is_attacking       = True
         self.attack_start_time  = current_time
@@ -340,10 +310,12 @@ class Test01(pygame.sprite.Sprite):
         print(f"[Test01] Bắt đầu tấn công (dist <= {self.attack_range}px)")
 
     def _end_attack(self):
+        """Kết thúc trạng thái tấn công"""
         self.state        = "idle" if not self.is_running else "run"
         self.is_attacking = False
         if self.direction in self.attack_anims:
             self.attack_anims[self.direction].reset()
+        # Gây sát thương cho player
         if self.player and not self.player.is_dead:
             import math
             slime_cx = self.x + self.width // 2
@@ -354,6 +326,7 @@ class Test01(pygame.sprite.Sprite):
                 self.player.take_damage(10)
 
     def _update_invincible(self, current_time):
+        """Cập nhật trạng thái bất tử"""
         if self.is_invincible:
             if current_time - self.invincible_start_time >= self.invincible_duration:
                 self.is_invincible = False
@@ -363,6 +336,7 @@ class Test01(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _update_animation(self, delta_time):
+        """Cập nhật animation hiện tại"""
         anim_map = {
             "idle":        self.idle_anims,
             "walk":        self.walk_anims,
@@ -370,7 +344,6 @@ class Test01(pygame.sprite.Sprite):
             "attack":      self.attack_anims,
             "hit":         self.hit_anims,
             "death":       self.death_anims,
-            "return_home": self.walk_anims,
         }
         anim_dict = anim_map.get(self.state, self.idle_anims)
         anim      = anim_dict.get(self.direction) \
@@ -390,22 +363,25 @@ class Test01(pygame.sprite.Sprite):
         else:
             self.image.set_alpha(255)
 
+        # Cập nhật rect
         old_center      = self.rect.center
         self.rect       = self.image.get_rect()
         self.rect.center = old_center
         self.width      = self.image.get_width()
         self.height     = self.image.get_height()
-        self.body_radius = 20 #max(self.width, self.height) // 2
+        self.body_radius = 20
 
     # ------------------------------------------------------------------
     # VẼ
     # ------------------------------------------------------------------
 
     def draw(self, screen, camera):
+        """Vẽ quái lên màn hình"""
         screen_x = self.x - camera.x
         screen_y = self.y - camera.y
         screen.blit(self.image, (screen_x, screen_y))
 
+        # Vẽ debug nếu bật
         if not self.debug:
             return
 
@@ -420,25 +396,15 @@ class Test01(pygame.sprite.Sprite):
         pygame.draw.rect(screen, (0, 255, 0),
                          (bar_x, bar_y, int(bar_w * self.health / self.max_health), bar_h))
 
+        # Vẽ hitbox và phạm vi tấn công
         pygame.draw.circle(screen, (128, 0, 128), (cx, cy), self.body_radius, 2)
         pygame.draw.circle(screen, (255, 165, 0),  (cx, cy), self.attack_range, 2)
 
-        hcx = int(self.home_x + self.width  // 2 - camera.x)
-        hcy = int(self.home_y + self.height // 2 - camera.y)
-        pygame.draw.circle(screen, (255, 255, 0), (hcx, hcy), self.home_chase_radius, 2)
-        pygame.draw.circle(screen, (255, 0,   0), (hcx, hcy), self.home_leave_radius, 2)
-        pygame.draw.rect(screen,   (255, 255, 255), (hcx - 5, hcy - 5, 10, 10), 2)
-        pygame.draw.line(screen,   (200, 200, 200), (cx, cy), (hcx, hcy), 1)
-
+        # Vẽ thông tin debug
         font = pygame.font.Font(None, 20)
-        dist_home = math.hypot(
-            (self.home_x + self.width  // 2) - (self.x + self.width  // 2),
-            (self.home_y + self.height // 2) - (self.y + self.height // 2),
-        )
         for i, text in enumerate([
             f"HP: {self.health}/{self.max_health}",
             f"State: {self.state}",
-            f"Dist home: {dist_home:.0f}",
         ]):
             surf = font.render(text, True, (255, 255, 0))
-            screen.blit(surf, (screen_x, screen_y - 65 + i * 20))
+            screen.blit(surf, (screen_x, screen_y - 45 + i * 20))

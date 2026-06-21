@@ -7,9 +7,13 @@ from test01 import Test01
 from plant1 import Plant1
 from plant2 import Plant2
 from plant3 import Plant3
+
 from slime1 import Slime1
 from slime2 import Slime2
 from slime3 import Slime3
+
+from test01 import Test01
+
 from gold_drop import GoldDrop
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT
 
@@ -20,7 +24,7 @@ from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT
 # WAVE_ORDER: Xác định thứ tự các đợt quái sẽ xuất hiện
 # Mỗi đợt sẽ spawn một loại quái khác nhau theo thứ tự này
 WAVE_ORDER = [
-    #"slime3",
+    "test01",
     "slime3",    # Đợt 1: Slime cấp 1 (yếu nhất)
     "slime2",    # Đợt 2: Slime cấp 2 (trung bình)
     "slime3",    # Đợt 3: Slime cấp 3 (mạnh nhất)
@@ -30,13 +34,13 @@ WAVE_ORDER = [
 ]
 
 # ENEMIES_PER_WAVE: Số lượng quái sẽ spawn trong mỗi đợt
-ENEMIES_PER_WAVE = 9
+ENEMIES_PER_WAVE = 15
 
 # ENEMIES_PER_BATCH: Số quái spawn mỗi lần (batch)
 ENEMIES_PER_BATCH = 3  # Spawn 3 con mỗi lần
 
 # SPAWN_INTERVAL: Thời gian (giây) giữa mỗi lần spawn batch
-# Sau khi 3 con bị tiêu diệt, đợi 2 giây rồi spawn 3 con tiếp theo
+# Sau khi 3 con bị tiêu diệt, đợi x(s) rồi spawn 3 con tiếp theo
 SPAWN_INTERVAL = 2.0
 
 # SPAWN_OFFSET: Khoảng cách (px) spawn quái ngoài rìa camera
@@ -44,18 +48,27 @@ SPAWN_OFFSET = 80
 
 # GOLD_VALUES: Ánh xạ tên quái -> số vàng rơi khi quái chết
 GOLD_VALUES = {
-    "slime1": 10,  # Slime cấp 1 rơi 10 vàng
-    "slime2": 20,  # Slime cấp 2 rơi 20 vàng
-    "slime3": 30,  # Slime cấp 3 rơi 30 vàng
-    "plant1": 15,  # Plant cấp 1 rơi 15 vàng
-    "plant2": 25,  # Plant cấp 2 rơi 25 vàng
-    "plant3": 35,  # Plant cấp 3 rơi 35 vàng
+    
+    "slime1": 20,  # Slime cấp 1 rơi 10 vàng
+    "slime2": 40,  # Slime cấp 2 rơi 20 vàng
+    "slime3": 80,  # Slime cấp 3 rơi 30 vàng
+
+    "plant1": 40,  # Plant cấp 1 rơi 15 vàng
+    "plant2": 80,  # Plant cấp 2 rơi 25 vàng
+    "plant3": 160,  # Plant cấp 3 rơi 35 vàng
+
+    "test01": 200,
 }
 
 # ENEMY_CLASSES: Ánh xạ tên quái -> Class tương ứng
 ENEMY_CLASSES = {
+    
+
     "slime1": Slime1, "slime2": Slime2, "slime3": Slime3,
+
     "plant1": Plant1, "plant2": Plant2, "plant3": Plant3,
+
+    "test01": Test01,
 }
 
 # DEFAULT_SCALE: Tỉ lệ scale mặc định cho tất cả quái
