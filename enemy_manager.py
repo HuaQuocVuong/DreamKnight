@@ -106,6 +106,7 @@ class EnemyManager:
         self.wave_name_current = ""    # Tên wave hiện tại (ví dụ: "slime1")
         self.remaining_to_spawn = 0    # Số quái còn cần spawn trong wave này
         self.spawn_timer = 0.0         # Bộ đếm thời gian để spawn quái
+        self.all_waves_completed = False  # Cờ báo đã chiến thắng (hết tất cả wave)
         
         # Trạng thái spawn batch
         self.is_spawning = False       # Đang trong quá trình spawn batch
@@ -362,6 +363,7 @@ class EnemyManager:
                 print(f"[Wave] Chuyển sang đợt {self.wave_number}: {self.wave_name}")
             else:
                 # Đã hoàn thành tất cả wave
+                self.all_waves_completed = True
                 print("[Wave] Đã hoàn thành tất cả các đợt!")
 
         # ===== BƯỚC 7: CẬP NHẬT VÀNG =====

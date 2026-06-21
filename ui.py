@@ -195,6 +195,43 @@ class UI:
         hint = self.font.render("ESC to Quit", True, (160, 160, 160))
         surface.blit(hint, (box_x + (box_w - hint.get_width()) // 2, box_y + 205))
 
+    def draw_victory(self, surface, screen_width, screen_height):
+        """Vẽ màn hình Victory khi đánh hết tất cả wave"""
+        # Nền mờ toàn màn hình
+        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        surface.blit(overlay, (0, 0))
+
+        # Khung menu
+        box_w, box_h = 360, 260
+        box_x = (screen_width  - box_w) // 2
+        box_y = (screen_height - box_h) // 2
+        pygame.draw.rect(surface, (20, 30, 10),  (box_x, box_y, box_w, box_h), border_radius=16)
+        pygame.draw.rect(surface, (255, 210, 50), (box_x, box_y, box_w, box_h), 2, border_radius=16)
+
+        # Chữ VICTORY
+        title = self.font_big.render("VICTORY!", True, (255, 210, 50))
+        surface.blit(title, (box_x + (box_w - title.get_width()) // 2, box_y + 20))
+
+        # Nút Play Again
+        btn_w, btn_h = 220, 44
+        btn_x = box_x + (box_w - btn_w) // 2
+        mouse_pos = pygame.mouse.get_pos()
+
+        r_rect = pygame.Rect(btn_x, box_y + 140, btn_w, btn_h)
+        if r_rect.collidepoint(mouse_pos):
+            color_bg, color_txt = (255, 210, 50), (30, 20, 10)
+        else:
+            color_bg, color_txt = (90, 75, 10), (255, 230, 150)
+        pygame.draw.rect(surface, color_bg,       r_rect, border_radius=10)
+        pygame.draw.rect(surface, (255, 210, 50), r_rect, 2, border_radius=10)
+        t = self.font_btn.render("Play Again", True, color_txt)
+        surface.blit(t, (btn_x + (btn_w - t.get_width()) // 2, box_y + 140 + (btn_h - t.get_height()) // 2))
+
+        # Hint ESC
+        hint = self.font.render("ESC to Quit", True, (200, 200, 160))
+        surface.blit(hint, (box_x + (box_w - hint.get_width()) // 2, box_y + 205))
+
     def draw_gold(self, surface, player):
         """Vẽ icon đồng vàng + số vàng hiện có bên dưới thanh dash"""
         PAD   = 14
@@ -220,7 +257,35 @@ class UI:
         text_y = GOLD_Y + 22
         surface.blit(gold_text, (text_x, text_y))
 
-    def draw(self, surface, player, screen_width, screen_height):
+    def draw_stats(self, surface, player, screen_width):
+        """Vẽ bảng thông số (damage, dash cooldown) góc trên phải màn hình"""
+        PAD = 14
+        box_w = 170
+        box_h = 70
+        box_x = screen_width - box_w - PAD
+        box_y = PAD
+
+        # Nền mờ
+        bg = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        bg.fill((0, 0, 0, 120))
+        pygame.draw.rect(bg, (0, 0, 0, 120), (0, 0, box_w, box_h), border_radius=10)
+        surface.blit(bg, (box_x, box_y))
+        pygame.draw.rect(surface, (255, 210, 100), (box_x, box_y, box_w, box_h), 1, border_radius=10)
+
+        # Lấy thông số từ player
+        damage       = getattr(player, 'damage', 0)
+        dash_cd_ms   = getattr(player, 'dash_cooldown', 0)
+        dash_cd_sec  = dash_cd_ms / 1000
+
+        # Vẽ dòng DMG
+        dmg_text = self.font.render(f"DMG: {damage}", True, (255, 140, 140))
+        surface.blit(dmg_text, (box_x + 12, box_y + 12))
+
+        # Vẽ dòng Dash CD
+        dash_text = self.font.render(f"Dash CD: {dash_cd_sec:.1f}s", True, (140, 210, 255))
+        surface.blit(dash_text, (box_x + 12, box_y + 38))
+
+    def draw(self, surface, player, screen_width, screen_height, victory=False):
         """Vẽ toàn bộ UI (hàm chính gọi từ game loop)"""
         # Vẽ thanh máu (bằng SPRITE)
         self.draw_health_bar(surface, player)
@@ -231,8 +296,14 @@ class UI:
         # Vẽ số vàng
         self.draw_gold(surface, player)
 
+        # Vẽ bảng thông số DMG, Dash CD
+        self.draw_stats(surface, player, screen_width)
+
+        # Nếu đã chiến thắng, vẽ màn hình Victory (ưu tiên trước Game Over)
+        if victory:
+            self.draw_victory(surface, screen_width, screen_height)
         # Nếu player đã chết, vẽ màn hình Game Over
-        if hasattr(player, 'is_dead') and player.is_dead:
+        elif hasattr(player, 'is_dead') and player.is_dead:
             self.draw_game_over(surface, screen_width, screen_height)
 
 
