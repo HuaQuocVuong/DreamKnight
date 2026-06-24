@@ -296,23 +296,7 @@ class NPCSystem:
         font_bold = pygame.font.SysFont("Arial", 22, bold=True)
         player = game_instance.player
 
-        # 1. Vẽ icon [F] trên đầu NPC
-        if self.active_npc_id and not self.is_showing_dialogue and not self.is_showing_shop:
-            target_object = game_instance.sampleNPC_object if self.active_npc_id == 1 else game_instance.lunebladeNPC_object
-            if target_object and target_object.current_image:
-                img_width = target_object.current_image.get_width()
-                draw_x = int(target_object.x - camera.x)
-                draw_y = int(target_object.y - camera.y)
-                
-                excl_x = draw_x + (img_width // 2) - 4
-                excl_y = draw_y - 22  
-                
-                excl_surf = font_bold.render("!", True, (255, 215, 0))
-                surface.blit(excl_surf, (excl_x, excl_y))
-                hint_surf = font_small.render("[F]", True, (255, 255, 255))
-                surface.blit(hint_surf, (excl_x + 12, excl_y + 4))
-
-        # 2. Vẽ hộp thoại
+        # 1. Vẽ hộp thoại
         if self.is_showing_dialogue and self.active_npc_id:
             npc = self.npc_data[self.active_npc_id]
             box_rect = pygame.Rect(50, SCREEN_HEIGHT - 160, SCREEN_WIDTH - 100, 130)
@@ -361,7 +345,7 @@ class NPCSystem:
                 hint = font_small.render("[Nhan F de tiep tuc...]", True, (160, 160, 160))
                 surface.blit(hint, (SCREEN_WIDTH - 220, SCREEN_HEIGHT - 60))
 
-        # 3. Vẽ cửa hàng
+        # 2. Vẽ cửa hàng
         if self.is_showing_shop:
             self.button_rects = []
 
