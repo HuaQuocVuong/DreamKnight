@@ -146,18 +146,6 @@ class Game:
         except pygame.error as e:
             print(f"Lỗi khi phát nhạc: {e}")
 
-    def toggle_music(self):
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.pause()
-        else:
-            pygame.mixer.music.unpause()
-
-    def change_volume(self, delta):
-        sound_manager.set_music_volume(sound_manager.get_music_volume() + delta)
-
-    def change_sfx_volume(self, delta):
-        sound_manager.set_sfx_volume(sound_manager.get_sfx_volume() + delta)
-
     # ------------------------------------------------------------------
     # Sự kiện
     # ------------------------------------------------------------------
@@ -274,24 +262,6 @@ class Game:
                         pygame.mixer.music.pause()
                     else:
                         pygame.mixer.music.unpause()
-                elif self.pause_menu.visible:
-                    mods = pygame.key.get_mods()
-                    if event.key == pygame.K_LEFT:
-                        if mods & pygame.KMOD_SHIFT:
-                            self.change_sfx_volume(-0.1)
-                        else:
-                            self.change_volume(-0.1)
-                    elif event.key == pygame.K_RIGHT:
-                        if mods & pygame.KMOD_SHIFT:
-                            self.change_sfx_volume(0.1)
-                        else:
-                            self.change_volume(0.1)
-                elif event.key == pygame.K_m:
-                    self.toggle_music()
-                elif event.key == pygame.K_UP:
-                    self.change_volume(0.1)
-                elif event.key == pygame.K_DOWN:
-                    self.change_volume(-0.1)
 
         if self.pause_menu.visible or self.game_over or self.victory:
             return []
