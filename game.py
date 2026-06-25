@@ -1,3 +1,4 @@
+import sound_manager  # Phải import trước để monkey-patch pygame.mixer.Sound có hiệu lực
 import pygame
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT, MAP_IMAGE_PATH
 from knight1 import Player1
@@ -8,7 +9,6 @@ from npc_system import NPCSystem
 from enemy_manager import EnemyManager  
 
 from ui import UI, PauseMenu
-import sound_manager
 
 #================================================================================================
 # Vai trò: Lớp chính điều khiển toàn bộ vòng đời của game.
