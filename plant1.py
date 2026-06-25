@@ -56,9 +56,9 @@ class Plant1(pygame.sprite.Sprite):
         self.attack_sound_index   = 0
 
         # Máu
-        self.health     = 250
-        self.contact_damage = 13
-        self.max_health = 250
+        self.health     = 300
+        self.contact_damage = 25
+        self.max_health = 300
 
         # Thời gian trạng thái
         self.hit_start_time       = 0

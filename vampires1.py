@@ -2,13 +2,13 @@ import pygame
 import os
 import math
 from config import PLAYER_SPEED, RUN_SPEED
-from plant1_animation import Plant1AnimationLoader
+from vampires1_animation import Vampires1AnimationLoader
 
 # ================================================================================================
-# CLASS PLANT1 — Kẻ địch Plant
+# CLASS VAMPIRES1 — Kẻ địch vampires1
 # ================================================================================================
 
-class Plant1(pygame.sprite.Sprite):
+class Vampires1(pygame.sprite.Sprite):
 
     # ------------------------------------------------------------------
     # KHỞI TẠO
@@ -24,7 +24,7 @@ class Plant1(pygame.sprite.Sprite):
         self.home_y = float(y)
 
         # Tải toàn bộ animation qua loader
-        all_anims = Plant1AnimationLoader.load_all(scale_factor)
+        all_anims = Vampires1AnimationLoader.load_all(scale_factor)
         self.idle_anims   = all_anims["idle"]
         self.walk_anims   = all_anims["walk"]
         self.run_anims    = all_anims["run"]
@@ -42,12 +42,12 @@ class Plant1(pygame.sprite.Sprite):
         self.dx    = 0.0
         self.dy    = 0.0
 
-        
-        self.home_chase_radius = 250
-        self.home_leave_radius = 450
+        self.run_speed_multiplier = 0.4   # Hệ số tốc độ chạy (0.1 - 1.0)
+        self.walk_speed_multiplier = 0.3  # Hệ số tốc độ đi bộ (0.1 - 1.0)
+
         self.walk_duration     = 1200   # ms trước khi chuyển sang run
-        self.attack_range      = 45
-        self.attack_duration   = 600    # ms cho animation tấn công
+        self.attack_range      = 45     # phạm vi tấn công
+        self.attack_duration   = 700   # ms cho animation tấn công
 
         self.walk_start_time      = 0
         self.is_running           = False
@@ -56,7 +56,7 @@ class Plant1(pygame.sprite.Sprite):
 
         # Máu
         self.health     = 500
-        self.contact_damage = 15         # Sát thương khi chạm vào player
+        self.contact_damage = 40         # Sát thương khi chạm vào player
         self.max_health = 500
 
         # Thời gian trạng thái
@@ -64,8 +64,8 @@ class Plant1(pygame.sprite.Sprite):
         self.hit_duration         = 300
         self.death_start_time     = 0
         self.death_frame_duration = 85
-        self.death_frames_count   = 10
-        self.death_duration = self.death_frame_duration * self.death_frames_count  # 340 ms
+        self.death_frames_count   = 6
+        self.death_duration = self.death_frame_duration * self.death_frames_count  # 510 ms
 
         # Cờ trạng thái
         self.is_dead       = False
@@ -86,6 +86,7 @@ class Plant1(pygame.sprite.Sprite):
         self.body_radius = 20
         
         # Debug
+        #self.debug = True
         self.debug = False
 
         # Âm thanh
@@ -103,16 +104,11 @@ class Plant1(pygame.sprite.Sprite):
         try:
             for i in range(1, 3):
                 path = os.path.join(sound_path, f"Attack{i}.mp3")
-                if os.path.exists(path):
-                    self.attack_sounds.append(pygame.mixer.Sound(path))
-            hit_path = os.path.join(sound_path, "hit.mp3")
-            if os.path.exists(hit_path):
-                self.hit_sound = pygame.mixer.Sound(hit_path)
-            death_path = os.path.join(sound_path, "Death.mp3")
-            if os.path.exists(death_path):
-                self.death_sound = pygame.mixer.Sound(death_path)
+                self.attack_sounds.append(pygame.mixer.Sound(path))
+            self.hit_sound   = pygame.mixer.Sound(os.path.join(sound_path, "hit.mp3"))
+            self.death_sound = pygame.mixer.Sound(os.path.join(sound_path, "Death.mp3"))
         except Exception as e:
-            print(f"[Plant1] Lỗi load âm thanh: {e}")
+            print(f"[Vampires1] Lỗi load âm thanh: {e}")
 
     # ------------------------------------------------------------------
     # API CÔNG KHAI
@@ -122,11 +118,12 @@ class Plant1(pygame.sprite.Sprite):
         self.player = player
 
     def take_damage(self, damage) -> bool:
+        """Nhận sát thương từ player"""
         if self.is_dead or self.is_invincible:
             return False
 
         self.health -= damage
-        print(f"[Plant1] Nhận {damage} sát thương! Máu còn: {self.health}/{self.max_health}")
+        print(f"[Vampires1] Nhận {damage} sát thương! Máu còn: {self.health}/{self.max_health}")
 
         if self.health <= 0:
             self.health = 0
@@ -137,6 +134,7 @@ class Plant1(pygame.sprite.Sprite):
         return True
 
     def die(self):
+        """Xử lý khi chết"""
         if self.is_dead:
             return
         self.is_dead        = True
@@ -150,6 +148,7 @@ class Plant1(pygame.sprite.Sprite):
             self.death_anims[self.direction].reset()
 
     def get_hitbox(self):
+        """Lấy hitbox của quái"""
         return (self.rect.centerx, self.rect.centery, self.body_radius)
 
     # ------------------------------------------------------------------
@@ -157,6 +156,7 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def update(self, delta_time, map_width, map_height):
+        """Cập nhật trạng thái và vị trí của quái mỗi frame"""
         if self.player is None:
             return
 
@@ -190,31 +190,33 @@ class Plant1(pygame.sprite.Sprite):
 
         # --- Tính khoảng cách ---
         px, py           = self._player_center()
-        home_cx, home_cy = self._home_center()
-        plant_cx         = self.x + self.width  // 2
-        plant_cy         = self.y + self.height // 2
-
-        dist_player_to_home = math.hypot(px - home_cx,   py - home_cy)
-        dist_to_player      = math.hypot(plant_cx - px,  plant_cy - py)
+        slime_cx         = self.x + self.width  // 2
+        slime_cy         = self.y + self.height // 2
+        dist_to_player   = math.hypot(slime_cx - px,  slime_cy - py)
 
         # Cập nhật hướng nhìn về phía player
         self._update_direction(px, py)
 
-        # Kích hoạt tấn công
-        if dist_to_player <= self.attack_range and self.state not in ("attack", "return_home"):
+        # Kích hoạt tấn công nếu player trong phạm vi
+        if dist_to_player <= self.attack_range and self.state != "attack":
             self._start_attack(current_time)
             return
 
-        # Cập nhật trạng thái AI theo vùng
-        self._update_state_by_zone(dist_player_to_home, current_time)
+        # Bỏ cơ chế về nhà - luôn đuổi theo player
+        if self.state == "idle":
+            # Khi thấy player, chuyển sang trạng thái đi bộ
+            self.state = "walk"
+            self.walk_start_time = current_time
+            self.is_running = False
+        elif self.state == "walk":
+            # Sau thời gian walk_duration, chuyển sang chạy
+            if current_time - self.walk_start_time >= self.walk_duration:
+                self.state = "run"
+                self.is_running = True
 
-        # Xử lý về nhà
-        if self.state == "return_home":
-            self._handle_return_home(home_cx, home_cy)
-        elif self.state in ("walk", "run"):
+        # Đuổi theo player
+        if self.state in ("walk", "run"):
             self._handle_chase(px, py)
-        elif self.state == "idle":
-            self.dx = self.dy = 0
 
         # Cập nhật vị trí
         self._apply_movement(map_width, map_height)
@@ -225,18 +227,14 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _player_center(self):
+        """Lấy tọa độ trung tâm của player"""
         return (
             self.player.x + self.player.width  // 2,
             self.player.y + self.player.height // 2,
         )
 
-    def _home_center(self):
-        return (
-            self.home_x + self.width  // 2,
-            self.home_y + self.height // 2,
-        )
-
     def _update_direction(self, px, py):
+        """Cập nhật hướng nhìn dựa vào vị trí player"""
         angle = math.atan2(py - (self.y + self.height // 2),
                            px - (self.x + self.width  // 2))
         if abs(angle) < math.pi / 4:
@@ -248,62 +246,31 @@ class Plant1(pygame.sprite.Sprite):
         else:
             self.direction = "up"
 
-    def _update_state_by_zone(self, dist_player_to_home, current_time):
-        if dist_player_to_home <= self.home_chase_radius:
-            if self.state == "idle":
-                self.state          = "walk"
-                self.walk_start_time = current_time
-                self.is_running     = False
-                print("[Plant1] Phát hiện player — bắt đầu đuổi")
-            elif self.state == "walk":
-                if current_time - self.walk_start_time >= self.walk_duration:
-                    self.state      = "run"
-                    self.is_running = True
-                    print("[Plant1] Chuyển sang chạy!")
-            elif self.state == "return_home":
-                self.state          = "walk"
-                self.walk_start_time = current_time
-                self.is_running     = False
-        elif dist_player_to_home > self.home_leave_radius:
-            if self.state not in ("return_home", "idle", "attack"):
-                self.state      = "return_home"
-                self.is_running = False
-                print("[Plant1] Player ra khỏi vùng — quay về nhà")
-
-    def _handle_return_home(self, home_cx, home_cy):
-        dx = home_cx - (self.x + self.width  // 2)
-        dy = home_cy - (self.y + self.height // 2)
-        dist = math.hypot(dx, dy)
-
-        if dist < 10:
-            self.state = "idle"
-            self.dx = self.dy = 0
-            self.x, self.y    = self.home_x, self.home_y
-            self.rect.x, self.rect.y = self.x, self.y
-            print("[Plant1] Đã về nhà!")
-        else:
-            speed    = PLAYER_SPEED * 0.5
-            self.dx  = (dx / dist) * speed
-            self.dy  = (dy / dist) * speed
-            self.direction = ("right" if dx > 0 else "left") if abs(dx) > abs(dy) \
-                             else ("down" if dy > 0 else "up")
-
     def _handle_chase(self, target_x, target_y):
+        """Xử lý đuổi theo player"""
         dx = target_x - (self.x + self.width  // 2)
         dy = target_y - (self.y + self.height // 2)
         dist = math.hypot(dx, dy)
 
+        # Dừng lại nếu đã đến gần player
         if dist <= self.attack_range or dist <= 5:
             self.dx = self.dy = 0
             if self.state == "run":
                 self.state = "walk"
             return
 
-        speed   = RUN_SPEED * 0.6 if self.state == "run" else PLAYER_SPEED * 0.4
+        # Tính tốc độ dựa trên trạng thái
+        if self.state == "run":
+            speed = RUN_SPEED * self.run_speed_multiplier
+        else:
+            speed = PLAYER_SPEED * self.walk_speed_multiplier
+        
+        # Di chuyển về phía player
         self.dx = (dx / dist) * speed
         self.dy = (dy / dist) * speed
 
     def _apply_movement(self, map_width, map_height):
+        """Áp dụng di chuyển với giới hạn bản đồ"""
         new_x = self.x + self.dx
         new_y = self.y + self.dy
         if 0 <= new_x <= map_width  - self.width:
@@ -318,6 +285,7 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _start_hit(self):
+        """Bắt đầu trạng thái bị thương"""
         self.state          = "hit"
         self.hit_start_time = pygame.time.get_ticks()
         self.dx = self.dy   = 0
@@ -329,6 +297,7 @@ class Plant1(pygame.sprite.Sprite):
             self.hit_anims[self.direction].reset()
 
     def _start_attack(self, current_time):
+        """Bắt đầu trạng thái tấn công"""
         self.state              = "attack"
         self.is_attacking       = True
         self.attack_start_time  = current_time
@@ -338,23 +307,26 @@ class Plant1(pygame.sprite.Sprite):
         if self.attack_sounds:
             self.attack_sounds[self.attack_sound_index].play()
             self.attack_sound_index = (self.attack_sound_index + 1) % len(self.attack_sounds)
-        print(f"[Plant1] Bắt đầu tấn công (dist <= {self.attack_range}px)")
+        print(f"[Vampires1] Bắt đầu tấn công (dist <= {self.attack_range}px)")
 
     def _end_attack(self):
+        """Kết thúc trạng thái tấn công"""
         self.state        = "idle" if not self.is_running else "run"
         self.is_attacking = False
         if self.direction in self.attack_anims:
             self.attack_anims[self.direction].reset()
+        # Gây sát thương cho player
         if self.player and not self.player.is_dead:
             import math
-            plant_cx = self.x + self.width // 2
-            plant_cy = self.y + self.height // 2
+            vampires1_cx = self.x + self.width // 2
+            vampires1_cy = self.y + self.height // 2
             px = self.player.x + self.player.width // 2
             py = self.player.y + self.player.height // 2
-            if math.hypot(plant_cx - px, plant_cy - py) <= self.attack_range * 1.3:
+            if math.hypot(vampires1_cx - px, vampires1_cy - py) <= self.attack_range * 1.3:
                 self.player.take_damage(10)
 
     def _update_invincible(self, current_time):
+        """Cập nhật trạng thái bất tử"""
         if self.is_invincible:
             if current_time - self.invincible_start_time >= self.invincible_duration:
                 self.is_invincible = False
@@ -364,6 +336,7 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _update_animation(self, delta_time):
+        """Cập nhật animation hiện tại"""
         anim_map = {
             "idle":        self.idle_anims,
             "walk":        self.walk_anims,
@@ -371,7 +344,6 @@ class Plant1(pygame.sprite.Sprite):
             "attack":      self.attack_anims,
             "hit":         self.hit_anims,
             "death":       self.death_anims,
-            "return_home": self.walk_anims,
         }
         anim_dict = anim_map.get(self.state, self.idle_anims)
         anim      = anim_dict.get(self.direction) \
@@ -391,6 +363,7 @@ class Plant1(pygame.sprite.Sprite):
         else:
             self.image.set_alpha(255)
 
+        # Cập nhật rect
         old_center      = self.rect.center
         self.rect       = self.image.get_rect()
         self.rect.center = old_center
@@ -403,10 +376,12 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def draw(self, screen, camera):
+        """Vẽ quái lên màn hình"""
         screen_x = self.x - camera.x
         screen_y = self.y - camera.y
         screen.blit(self.image, (screen_x, screen_y))
 
+        # Vẽ debug nếu bật
         if not self.debug:
             return
 
@@ -421,25 +396,15 @@ class Plant1(pygame.sprite.Sprite):
         pygame.draw.rect(screen, (0, 255, 0),
                          (bar_x, bar_y, int(bar_w * self.health / self.max_health), bar_h))
 
-        pygame.draw.circle(screen, (34, 139, 34), (cx, cy), self.body_radius, 2)
+        # Vẽ hitbox và phạm vi tấn công
+        pygame.draw.circle(screen, (128, 0, 128), (cx, cy), self.body_radius, 2)
         pygame.draw.circle(screen, (255, 165, 0),  (cx, cy), self.attack_range, 2)
 
-        hcx = int(self.home_x + self.width  // 2 - camera.x)
-        hcy = int(self.home_y + self.height // 2 - camera.y)
-        pygame.draw.circle(screen, (255, 255, 0), (hcx, hcy), self.home_chase_radius, 2)
-        pygame.draw.circle(screen, (255, 0,   0), (hcx, hcy), self.home_leave_radius, 2)
-        pygame.draw.rect(screen,   (255, 255, 255), (hcx - 5, hcy - 5, 10, 10), 2)
-        pygame.draw.line(screen,   (200, 200, 200), (cx, cy), (hcx, hcy), 1)
-
+        # Vẽ thông tin debug
         font = pygame.font.Font(None, 20)
-        dist_home = math.hypot(
-            (self.home_x + self.width  // 2) - (self.x + self.width  // 2),
-            (self.home_y + self.height // 2) - (self.y + self.height // 2),
-        )
         for i, text in enumerate([
             f"HP: {self.health}/{self.max_health}",
             f"State: {self.state}",
-            f"Dist home: {dist_home:.0f}",
         ]):
             surf = font.render(text, True, (255, 255, 0))
-            screen.blit(surf, (screen_x, screen_y - 65 + i * 20))
+            screen.blit(surf, (screen_x, screen_y - 45 + i * 20))

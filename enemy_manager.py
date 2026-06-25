@@ -3,7 +3,7 @@ import random
 
 import pygame
 
-from test01 import Test01
+
 from plant1 import Plant1
 from plant2 import Plant2
 from plant3 import Plant3
@@ -12,7 +12,7 @@ from slime1 import Slime1
 from slime2 import Slime2
 from slime3 import Slime3
 
-from test01 import Test01
+from vampires1 import Vampires1
 
 from gold_drop import GoldDrop
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT
@@ -33,7 +33,7 @@ WAVE_ORDER = [
     "plant2",    # Đợt 5: Plant cấp 2
     "plant3",    # Đợt 6: Plant cấp 3 (mạnh nhất)
 
-    "test01",
+    "vampire",
 ]
 
 # ENEMIES_PER_WAVE: Số lượng quái sẽ spawn trong mỗi đợt
@@ -60,7 +60,7 @@ GOLD_VALUES = {
     "plant2": 80,  # Plant cấp 2 rơi 25 vàng
     "plant3": 160,  # Plant cấp 3 rơi 35 vàng
 
-    "test01": 200,
+    "vampire": 200,
 }
 
 # ENEMY_CLASSES: Ánh xạ tên quái -> Class tương ứng
@@ -71,7 +71,7 @@ ENEMY_CLASSES = {
 
     "plant1": Plant1, "plant2": Plant2, "plant3": Plant3,
 
-    "test01": Test01,
+    "vampire": Vampires1,
 }
 
 # DEFAULT_SCALE: Tỉ lệ scale mặc định cho tất cả quái
@@ -226,68 +226,7 @@ class EnemyManager:
         # Giới hạn y trong [MARGIN, MAP_HEIGHT - height - MARGIN]
         enemy.y = max(MARGIN, min(enemy.y, MAP_HEIGHT - enemy.height - MARGIN))
 
-    # ------------------------------------------------------------------
-    # PHƯƠNG PHÁP ALTERNATIVE: DÙNG LỰC ĐẨY DỰA TRÊN KHỐI LƯỢNG
-    # ------------------------------------------------------------------
 
-    def _handle_enemy_collisions_advanced(self):
-        """
-        Phiên bản nâng cao: đẩy dựa trên tốc độ và khối lượng (không sử dụng)
-        
-        Phương pháp này tính lực đẩy dựa trên:
-        - Khoảng cách giữa 2 enemy
-        - Tỉ lệ overlap so với kích thước
-        - Không sử dụng trong code hiện tại nhưng có thể thay thế
-        """
-        
-        # Lưu vị trí cũ để tính toán (dự phòng)
-        positions = []
-        for enemy in self.enemies:
-            positions.append((enemy.x, enemy.y))
-        
-        # Xử lý va chạm
-        for _ in range(2):
-            for i in range(len(self.enemies)):
-                for j in range(i + 1, len(self.enemies)):
-                    enemy1 = self.enemies[i]
-                    enemy2 = self.enemies[j]
-                    
-                    if enemy1.is_dead or enemy2.is_dead:
-                        continue
-                    
-                    # Tính khoảng cách giữa 2 enemy
-                    dx = (enemy1.x + enemy1.width/2) - (enemy2.x + enemy2.width/2)
-                    dy = (enemy1.y + enemy1.height/2) - (enemy2.y + enemy2.height/2)
-                    distance = math.hypot(dx, dy)
-                    
-                    # Khoảng cách tối thiểu = trung bình kích thước
-                    min_distance = (max(enemy1.width, enemy1.height) + 
-                                   max(enemy2.width, enemy2.height)) / 2
-                    
-                    # Nếu va chạm
-                    if distance < min_distance and distance > 0.001:
-                        # Tính lực đẩy tỉ lệ nghịch với khoảng cách
-                        # Càng gần thì lực đẩy càng mạnh
-                        force = (min_distance - distance) / min_distance
-                        force = min(force, 0.5)  # Giới hạn lực tối đa
-                        
-                        # Chuẩn hóa vector
-                        dx /= distance
-                        dy /= distance
-                        
-                        # Áp dụng lực đẩy
-                        push_x = dx * force * 0.5
-                        push_y = dy * force * 0.5
-                        
-                        # Đẩy 2 enemy ra xa
-                        enemy1.x += push_x
-                        enemy1.y += push_y
-                        enemy2.x -= push_x
-                        enemy2.y -= push_y
-                        
-                        # Giới hạn trong map
-                        self._clamp_enemy_to_map(enemy1)
-                        self._clamp_enemy_to_map(enemy2)
 
     # ------------------------------------------------------------------
     # Update mỗi frame

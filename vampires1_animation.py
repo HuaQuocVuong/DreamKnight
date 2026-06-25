@@ -3,10 +3,10 @@ import os
 from knight1_animation import Animation
 
 # ================================================================================================
-# CẤU HÌNH ANIMATION CHO TEST01 (SLIME 3)
+# CẤU HÌNH ANIMATION CHO VAMPIRES1
 # ================================================================================================
 
-TEST01_ANIMATION_CONFIGS = {
+VAMPIRES1_ANIMATION_CONFIGS = {
     "idle": {
         "folder": "vampires1_idle",
         "directions": {
@@ -78,12 +78,12 @@ FALLBACK_COLOR = (128, 0, 128)  # tím
 
 
 # ================================================================================================
-# CLASS LOADER — tải tất cả animation cho Test01
+# CLASS LOADER — tải tất cả animation cho Vampires1
 # ================================================================================================
 
-class Test01AnimationLoader:
+class Vampires1AnimationLoader:
     """
-    Tải toàn bộ animation của Test01 từ thư mục assets.
+    Tải toàn bộ animation của Vampires1 từ thư mục assets.
     Trả về dict: { anim_type: { direction: Animation } }
     """
 
@@ -92,11 +92,11 @@ class Test01AnimationLoader:
     @classmethod
     def load_all(cls, scale_factor: float = 2.0) -> dict:
         """
-        Tải tất cả animation theo TEST01_ANIMATION_CONFIGS.
+        Tải tất cả animation theo VAMPIRES1_ANIMATION_CONFIGS.
         Trả về dict đầy đủ các loại animation.
         """
         if not os.path.exists(cls.BASE_PATH):
-            print(f"[Test01Anim] Thư mục không tồn tại: {cls.BASE_PATH}")
+            print(f"[Vampires1Anim] Thư mục không tồn tại: {cls.BASE_PATH}")
 
         all_anims = {}
         for anim_type, duration in FRAME_DURATIONS.items():
@@ -113,7 +113,7 @@ class Test01AnimationLoader:
     def _load_anim_type(cls, anim_type: str, frame_duration: int, scale_factor: float) -> dict:
         """Tải một loại animation (idle / walk / …) cho cả 4 hướng."""
         anims = {}
-        config = TEST01_ANIMATION_CONFIGS.get(anim_type)
+        config = VAMPIRES1_ANIMATION_CONFIGS.get(anim_type)
         if not config:
             return anims
 
@@ -122,7 +122,7 @@ class Test01AnimationLoader:
             frames = cls._load_frames(folder, dir_cfg, scale_factor)
             if frames:
                 anims[direction] = Animation(frames, frame_duration)
-                print(f"[Test01Anim] Loaded {len(frames)} frames — {anim_type}/{direction}")
+                print(f"[Vampires1Anim] Loaded {len(frames)} frames — {anim_type}/{direction}")
 
         return anims
 
@@ -148,7 +148,7 @@ class Test01AnimationLoader:
                 else:
                     frames.append(cls._make_fallback())
             except Exception as e:
-                print(f"[Test01Anim] Lỗi load {filepath}: {e}")
+                print(f"[Vampires1Anim] Lỗi load {filepath}: {e}")
                 frames.append(cls._make_fallback())
 
         return frames
@@ -165,6 +165,6 @@ class Test01AnimationLoader:
         if anims:
             return anims
 
-        print(f"[Test01Anim] Tạo animation fallback cho: {anim_type}")
+        print(f"[Vampires1Anim] Tạo animation fallback cho: {anim_type}")
         fallback_frame = [cls._make_fallback()]
         return {d: Animation(fallback_frame, duration) for d in ("up", "down", "left", "right")}
