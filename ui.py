@@ -1,7 +1,8 @@
 import pygame
+
 class UI:
     """Lớp quản lý giao diện người dùng (thanh máu, thanh cooldown dash, animation, game over)"""
-    
+
     def __init__(self):
         """Khởi tạo các thành phần UI và load tài nguyên"""
         pygame.font.init()
@@ -33,20 +34,8 @@ class UI:
             img = pygame.image.load(f"assets/gold/gold01/gold{i}.png").convert_alpha()
             img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
             self.gold_frames.append(img)
-    
-    def load_dash_frames(self):
-        """Load 5 ảnh dash từ thư mục assets/dash_UI/ và scale gấp đôi kích thước"""
-        for i in range(5):  # Duyệt từ 0 đến 4 tương ứng dashUI00.png → dashUI04.png
-            try:
-                frame = pygame.image.load(f"assets/dash_UI/dashUI0{i}.png").convert_alpha()
-                w, h = frame.get_width(), frame.get_height()
-                frame = pygame.transform.scale(frame, (w * 3, h * 3))  # Scale gấp đôi để rõ nét hơn
-                self.dash_frames.append(frame)
-            except Exception as e:
-                print(f"LỖI: Không load được dashUI0{i}.png - {e}")
-                pygame.quit()
-                exit()
-    
+
+
     def load_hp_frames(self):
         """Load 5 ảnh HP từ thư mục assets/HP_UI/ (0% → 100% máu) và scale gấp đôi"""
         for i in range(5):  # hp_UI0.png (0% máu) → hp_UI4.png (100% máu)
@@ -61,25 +50,21 @@ class UI:
                 dummy = pygame.Surface((100, 30), pygame.SRCALPHA)
                 dummy.fill((100, 0, 0))
                 self.hp_frames.append(dummy)
-    
-    def start_dash_animation(self):
-        """Bắt đầu animation dash (chỉ gọi 1 lần mỗi lần dash)"""
-        self.is_dashing_anim = True
-        self.dash_animation_progress = 0.0
-        self.has_played_dash_anim = True
-    
-    def reset_dash_animation_flag(self):
-        """Reset flag khi dash kết thúc, cho phép lần dash sau có thể chạy animation lại"""
-        self.has_played_dash_anim = False
-    
-    def update_dash_animation(self):
-        """Cập nhật animation dash ở mỗi frame (tăng progress, kết thúc khi đạt 1.0)"""
-        if self.is_dashing_anim:
-            self.dash_animation_progress += self.dash_animation_speed
-            if self.dash_animation_progress >= 1.0:
-                self.is_dashing_anim = False
-                self.dash_animation_progress = 0.0
-                self.reset_dash_animation_flag()
+
+
+    def load_dash_frames(self):
+        """Load 5 ảnh dash từ thư mục assets/dash_UI/ và scale gấp đôi kích thước"""
+        for i in range(5):  # Duyệt từ 0 đến 4 tương ứng dashUI00.png → dashUI04.png
+            try:
+                frame = pygame.image.load(f"assets/dash_UI/dashUI0{i}.png").convert_alpha()
+                w, h = frame.get_width(), frame.get_height()
+                frame = pygame.transform.scale(frame, (w * 3, h * 3))  # Scale gấp đôi để rõ nét hơn
+                self.dash_frames.append(frame)
+            except Exception as e:
+                print(f"LỖI: Không load được dashUI0{i}.png - {e}")
+                pygame.quit()
+                exit()
+
 
     def draw_health_bar(self, surface, player):
         """Vẽ thanh máu HOÀN TOÀN bằng SPRITE (không còn vẽ bằng code nữa)"""
@@ -100,6 +85,29 @@ class UI:
         # Vẽ sprite thanh máu
         hp_frame = self.hp_frames[frame_index]
         surface.blit(hp_frame, (BAR_X, BAR_Y))
+
+
+    def start_dash_animation(self):
+        """Bắt đầu animation dash (chỉ gọi 1 lần mỗi lần dash)"""
+        self.is_dashing_anim = True
+        self.dash_animation_progress = 0.0
+        self.has_played_dash_anim = True
+
+
+    def reset_dash_animation_flag(self):
+        """Reset flag khi dash kết thúc, cho phép lần dash sau có thể chạy animation lại"""
+        self.has_played_dash_anim = False
+
+
+    def update_dash_animation(self):
+        """Cập nhật animation dash ở mỗi frame (tăng progress, kết thúc khi đạt 1.0)"""
+        if self.is_dashing_anim:
+            self.dash_animation_progress += self.dash_animation_speed
+            if self.dash_animation_progress >= 1.0:
+                self.is_dashing_anim = False
+                self.dash_animation_progress = 0.0
+                self.reset_dash_animation_flag()
+
 
     def draw_dash_cooldown(self, surface, player):
         """Vẽ thanh dash - chỉ chạy animation 1 lần mỗi lần dash"""
@@ -152,6 +160,62 @@ class UI:
         label = self.font.render("DASH", True, label_color)
         surface.blit(label, (BAR_X + frame_width + 8, BAR_Y + (frame_height // 2) - 8))
 
+
+    def draw_gold(self, surface, player):
+        """Vẽ icon đồng vàng + số vàng hiện có bên dưới thanh dash"""
+        PAD   = 14
+        BAR_Y = PAD + 28
+        DASH_H = 30
+        GOLD_Y = PAD + DASH_H + 30
+        
+        # Cập nhật animation
+        current_time = pygame.time.get_ticks()
+        if current_time - self.gold_frame_timer >= self.gold_frame_duration:
+            self.gold_frame_timer = current_time
+            self.gold_frame_index = (self.gold_frame_index + 1) % len(self.gold_frames)
+        
+        # Vẽ icon vàng animation
+        gold_icon = self.gold_frames[self.gold_frame_index]
+        surface.blit(gold_icon, (PAD, GOLD_Y))
+        
+        # Vẽ số vàng
+        gold = getattr(player, 'gold', 0)
+        gold_text = self.font.render(f"{gold}", True, (255, 230, 80))
+        
+        text_x = PAD + gold_icon.get_width() + 1
+        text_y = GOLD_Y + 22
+        surface.blit(gold_text, (text_x, text_y))
+
+
+    def draw_stats(self, surface, player, screen_width):
+        """Vẽ bảng thông số (damage, dash cooldown) góc trên phải màn hình"""
+        PAD = 14
+        box_w = 170
+        box_h = 70
+        box_x = screen_width - box_w - PAD
+        box_y = PAD
+
+        # Nền mờ
+        bg = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        bg.fill((0, 0, 0, 120))
+        pygame.draw.rect(bg, (0, 0, 0, 120), (0, 0, box_w, box_h), border_radius=10)
+        surface.blit(bg, (box_x, box_y))
+        pygame.draw.rect(surface, (255, 210, 100), (box_x, box_y, box_w, box_h), 1, border_radius=10)
+
+        # Lấy thông số từ player
+        damage       = getattr(player, 'damage', 0)
+        dash_cd_ms   = getattr(player, 'dash_cooldown', 0)
+        dash_cd_sec  = dash_cd_ms / 1000
+
+        # Vẽ dòng DMG
+        dmg_text = self.font.render(f"DMG: {damage}", True, (255, 140, 140))
+        surface.blit(dmg_text, (box_x + 12, box_y + 12))
+
+        # Vẽ dòng Dash CD
+        dash_text = self.font.render(f"Dash CD: {dash_cd_sec:.1f}s", True, (140, 210, 255))
+        surface.blit(dash_text, (box_x + 12, box_y + 38))
+
+
     def draw_game_over(self, surface, screen_width, screen_height):
         """Vẽ màn hình Game Over dạng khung menu"""
         # Nền mờ toàn màn hình
@@ -188,6 +252,7 @@ class UI:
         # Hint ESC
         hint = self.font.render("ESC to Quit", True, (160, 160, 160))
         surface.blit(hint, (box_x + (box_w - hint.get_width()) // 2, box_y + 205))
+
 
     def draw_victory(self, surface, screen_width, screen_height):
         """Vẽ màn hình Victory khi đánh hết tất cả wave"""
@@ -226,58 +291,6 @@ class UI:
         hint = self.font.render("ESC to Quit", True, (200, 200, 160))
         surface.blit(hint, (box_x + (box_w - hint.get_width()) // 2, box_y + 205))
 
-    def draw_gold(self, surface, player):
-        """Vẽ icon đồng vàng + số vàng hiện có bên dưới thanh dash"""
-        PAD   = 14
-        BAR_Y = PAD + 28
-        DASH_H = 30
-        GOLD_Y = PAD + DASH_H + 30
-        
-        # Cập nhật animation
-        current_time = pygame.time.get_ticks()
-        if current_time - self.gold_frame_timer >= self.gold_frame_duration:
-            self.gold_frame_timer = current_time
-            self.gold_frame_index = (self.gold_frame_index + 1) % len(self.gold_frames)
-        
-        # Vẽ icon vàng animation
-        gold_icon = self.gold_frames[self.gold_frame_index]
-        surface.blit(gold_icon, (PAD, GOLD_Y))
-        
-        # Vẽ số vàng
-        gold = getattr(player, 'gold', 0)
-        gold_text = self.font.render(f"{gold}", True, (255, 230, 80))
-        
-        text_x = PAD + gold_icon.get_width() + 1
-        text_y = GOLD_Y + 22
-        surface.blit(gold_text, (text_x, text_y))
-
-    def draw_stats(self, surface, player, screen_width):
-        """Vẽ bảng thông số (damage, dash cooldown) góc trên phải màn hình"""
-        PAD = 14
-        box_w = 170
-        box_h = 70
-        box_x = screen_width - box_w - PAD
-        box_y = PAD
-
-        # Nền mờ
-        bg = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
-        bg.fill((0, 0, 0, 120))
-        pygame.draw.rect(bg, (0, 0, 0, 120), (0, 0, box_w, box_h), border_radius=10)
-        surface.blit(bg, (box_x, box_y))
-        pygame.draw.rect(surface, (255, 210, 100), (box_x, box_y, box_w, box_h), 1, border_radius=10)
-
-        # Lấy thông số từ player
-        damage       = getattr(player, 'damage', 0)
-        dash_cd_ms   = getattr(player, 'dash_cooldown', 0)
-        dash_cd_sec  = dash_cd_ms / 1000
-
-        # Vẽ dòng DMG
-        dmg_text = self.font.render(f"DMG: {damage}", True, (255, 140, 140))
-        surface.blit(dmg_text, (box_x + 12, box_y + 12))
-
-        # Vẽ dòng Dash CD
-        dash_text = self.font.render(f"Dash CD: {dash_cd_sec:.1f}s", True, (140, 210, 255))
-        surface.blit(dash_text, (box_x + 12, box_y + 38))
 
     def draw(self, surface, player, screen_width, screen_height, victory=False):
         """Vẽ toàn bộ UI (hàm chính gọi từ game loop)"""

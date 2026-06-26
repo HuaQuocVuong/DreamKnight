@@ -205,7 +205,7 @@ class Game:
                         self.player.attack_speed_level   = 0
                         self.player.dash_upgrade_level   = 0
                         self.player.range_upgrade_level  = 0
-                        self.player.damage               = 50    # Về sát thương gốc
+                        self.player.damage               = 15    # Về sát thương gốc
                         self.player.dash_cooldown        = 500   # Về cooldown gốc
                         # Reset wave và quái
                         self.enemies = EnemyManager(self.player)
