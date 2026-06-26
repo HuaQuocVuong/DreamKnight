@@ -9,7 +9,6 @@ from npc_system import NPCSystem
 from enemy_manager import EnemyManager  
 
 from ui import UI, PauseMenu
-
 # ================================================================================================
 # CLASS GAME — Điều khiển toàn bộ vòng đời game
 # Quản lý: cửa sổ, vòng lặp, sự kiện, logic, render, nhạc nền

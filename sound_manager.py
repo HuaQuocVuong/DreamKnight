@@ -56,3 +56,14 @@ def get_music_volume():
 # Trả về volume SFX hiện tại
 def get_sfx_volume():
     return _sfx_volume
+
+# Tự động đăng ký mọi pygame.mixer.Sound được tạo ra trong game
+# Nhờ vậy không cần sửa từng file quái, NPC, v.v.
+_original_sound = pygame.mixer.Sound
+
+class _AutoSound(_original_sound):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        register_sound(self)
+
+pygame.mixer.Sound = _AutoSound
