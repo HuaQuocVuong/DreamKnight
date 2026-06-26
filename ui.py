@@ -1,10 +1,4 @@
-from typing import Self
-
 import pygame
-import math
-
-from knight1 import Player1
-
 class UI:
     """Lớp quản lý giao diện người dùng (thanh máu, thanh cooldown dash, animation, game over)"""
     

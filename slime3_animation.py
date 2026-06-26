@@ -1,4 +1,3 @@
-# slime3_animation.py
 import pygame
 import os
 from knight1_animation import Animation
@@ -8,6 +7,7 @@ from knight1_animation import Animation
 # ================================================================================================
 
 SLIME3_ANIMATION_CONFIGS = {
+    # Animation đứng yên — 6 frame mỗi hướng, 200ms/frame
     "idle": {
         "folder": "slime3_idle",
         "directions": {
@@ -17,6 +17,7 @@ SLIME3_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime3_idle_right", "frames": 6},
         },
     },
+    # Animation đi bộ — 8 frame, 100ms/frame, tốc độ PLAYER_SPEED * 0.4
     "walk": {
         "folder": "slime3_walk",
         "directions": {
@@ -26,6 +27,7 @@ SLIME3_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime3_walk_right", "frames": 8},
         },
     },
+    # Animation chạy — 8 frame, 70ms/frame, tốc độ RUN_SPEED * 0.5
     "run": {
         "folder": "slime3_run",
         "directions": {
@@ -35,6 +37,7 @@ SLIME3_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime3_run_right", "frames": 8},
         },
     },
+    # Animation tấn công — 9 frame, 60ms/frame (tổng 540ms)
     "attack": {
         "folder": "slime3_attack",
         "directions": {
@@ -44,6 +47,7 @@ SLIME3_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime3_attack_right", "frames": 9},
         },
     },
+    # Animation bị thương — 5 frame, 80ms/frame (tổng 400ms, nhưng code dùng 300ms)
     "hit": {
         "folder": "slime3_hurt",
         "directions": {
@@ -53,6 +57,7 @@ SLIME3_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime3_hurt_right", "frames": 5},
         },
     },
+    # Animation chết — 10 frame, 50ms/frame (tổng 500ms)
     "death": {
         "folder": "slime3_death",
         "directions": {
@@ -64,55 +69,67 @@ SLIME3_ANIMATION_CONFIGS = {
     },
 }
 
-# Thời gian mỗi frame (ms) cho từng loại animation
+# Thời gian mỗi frame (ms) — càng nhỏ animation càng nhanh
 FRAME_DURATIONS = {
-    "idle":   200,
-    "walk":   100,
-    "run":    70,
-    "attack": 60,
-    "hit":    80,
-    "death":  50,
+    "idle":   200,   # Chậm, tạo cảm giác thở
+    "walk":   100,   # Vừa phải, đồng bộ với tốc độ đi bộ
+    "run":    70,    # Nhanh, phù hợp tốc độ chạy
+    "attack": 60,    # Rất nhanh, tạo cảm giác dứt khoát
+    "hit":    80,    # Nhanh, animation ngắn gọn
+    "death":  50,    # Nhanh nhất, không delay game
 }
 
-# Màu fallback khi không tìm thấy sprite
-FALLBACK_COLOR = (0, 100, 128)  # màu xanh dương đậm (để phân biệt với slime2)
+# Màu fallback khi không tìm thấy sprite — xanh dương đậm (phân biệt với slime2)
+FALLBACK_COLOR = (0, 100, 128)
 
 
 # ================================================================================================
-# CLASS LOADER — tải tất cả animation cho Slime3
+# CLASS LOADER — tải tất cả animation cho Slime3 từ assets
 # ================================================================================================
 
 class Slime3AnimationLoader:
     """
     Tải toàn bộ animation của Slime3 từ thư mục assets.
-    Trả về dict: { anim_type: { direction: Animation } }
+    Trả về dict lồng: { anim_type: { direction: Animation } }
+    
+    Cấu trúc thư mục:
+    assets/resource_slime1_2_3/slime_3/
+        ├── slime3_idle/
+        ├── slime3_walk/
+        ├── slime3_run/
+        ├── slime3_attack/
+        ├── slime3_hurt/
+        └── slime3_death/
     """
 
+    # Đường dẫn gốc đến thư mục sprite slime3
     BASE_PATH = os.path.join("assets", "resource_slime1_2_3", "slime_3")
 
     @classmethod
     def load_all(cls, scale_factor: float = 2.0) -> dict:
         """
-        Tải tất cả animation theo SLIME3_ANIMATION_CONFIGS.
-        Trả về dict đầy đủ các loại animation.
+        Tải tất cả animation theo config, scale về kích thước mong muốn
+        scale_factor: hệ số phóng to (mặc định 2.0)
         """
         if not os.path.exists(cls.BASE_PATH):
             print(f"[Slime3Anim] Thư mục không tồn tại: {cls.BASE_PATH}")
 
         all_anims = {}
+        # Lặp qua từng loại animation (idle, walk, run, attack, hit, death)
         for anim_type, duration in FRAME_DURATIONS.items():
             loaded = cls._load_anim_type(anim_type, duration, scale_factor)
+            # Đảm bảo luôn có 4 hướng, tạo fallback nếu load thất bại
             all_anims[anim_type] = cls._ensure_fallback(loaded, anim_type, duration)
 
         return all_anims
 
     # ------------------------------------------------------------------
-    # INTERNAL HELPERS
+    # INTERNAL HELPERS — Các hàm hỗ trợ load
     # ------------------------------------------------------------------
 
     @classmethod
     def _load_anim_type(cls, anim_type: str, frame_duration: int, scale_factor: float) -> dict:
-        """Tải một loại animation (idle / walk / …) cho cả 4 hướng."""
+        """Tải một loại animation cho cả 4 hướng, trả về dict {direction: Animation}"""
         anims = {}
         config = SLIME3_ANIMATION_CONFIGS.get(anim_type)
         if not config:
@@ -129,7 +146,10 @@ class Slime3AnimationLoader:
 
     @classmethod
     def _load_frames(cls, folder: str, dir_cfg: dict, scale_factor: float) -> list:
-        """Tải danh sách surface cho một hướng cụ thể."""
+        """
+        Tải danh sách surface cho một hướng cụ thể
+        Cách đặt tên file: {prefix}{i}.png (vd: slime3_idle_down1.png)
+        """
         prefix      = dir_cfg["prefix"]
         frame_count = dir_cfg["frames"]
         frames      = []
@@ -139,6 +159,7 @@ class Slime3AnimationLoader:
             try:
                 if os.path.exists(filepath):
                     img = pygame.image.load(filepath).convert_alpha()
+                    # Scale nếu cần
                     if scale_factor != 1.0:
                         new_size = (
                             int(img.get_width()  * scale_factor),
@@ -147,6 +168,7 @@ class Slime3AnimationLoader:
                         img = pygame.transform.scale(img, new_size)
                     frames.append(img)
                 else:
+                    # File không tồn tại → dùng fallback
                     frames.append(cls._make_fallback())
             except Exception as e:
                 print(f"[Slime3Anim] Lỗi load {filepath}: {e}")
@@ -156,13 +178,14 @@ class Slime3AnimationLoader:
 
     @staticmethod
     def _make_fallback(size: int = 64) -> pygame.Surface:
+        """Tạo surface vuông màu xanh dương đậm khi không load được sprite"""
         surf = pygame.Surface((size, size), pygame.SRCALPHA)
         surf.fill(FALLBACK_COLOR)
         return surf
 
     @classmethod
     def _ensure_fallback(cls, anims: dict, anim_type: str, duration: int) -> dict:
-        """Đảm bảo 4 hướng đều có Animation, tạo fallback nếu thiếu."""
+        """Đảm bảo luôn có 4 hướng, nếu load thất bại → tạo fallback cho tất cả"""
         if anims:
             return anims
 
