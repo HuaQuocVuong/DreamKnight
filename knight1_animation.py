@@ -2,26 +2,27 @@ import pygame
 import os
 from config import PLAYER_SPEED, RUN_SPEED
 
-#================================================================================================
-# Lớp Animation quản lý chuỗi các frame
-# Lớp Animation: quản lý một chuỗi các frame ảnh để tạo hiệu ứng chuyển động.
-# Tự động cập nhật frame theo thời gian dựa trên frame_duration (ms)
-# Hỗ trợ reset về frame đầu tiên.
-#================================================================================================
+# ================================================================================================
+# CLASS ANIMATION — Quản lý chuỗi frame, tự động chuyển frame theo thời gian
+# ================================================================================================
 
 class Animation:
     def __init__(self, frames, frame_duration=90):
-        self.frames = frames    # Danh sách các frame ảnh
-        self.frame_count = len(frames)  # Tổng số frame
-        self.frame_duration = frame_duration   # Thời gian mỗi frame (ms)
-        self.current_frame_index = 0    # Chỉ số frame hiện tại
-        self.last_update_time = 0   # Thời điểm cập nhật frame gần nhất (ms)
-        self.current_frame = frames[0] if frames else None  # Frame đang hiển thị
-        self.is_finished = False  # Đánh dấu animation đã kết thúc (cho animation không loop)
-        self.loop = True  # Có lặp lại không
+        """
+        frames: danh sách Surface
+        frame_duration: thời gian mỗi frame (ms), mặc định 90ms
+        """
+        self.frames = frames
+        self.frame_count = len(frames)
+        self.frame_duration = frame_duration
+        self.current_frame_index = 0
+        self.last_update_time = 0
+        self.current_frame = frames[0] if frames else None
+        self.is_finished = False  # Cờ animation đã kết thúc (cho anim không loop)
+        self.loop = True          # Có lặp lại không
         
+    # Chuyển frame tiếp theo nếu đủ thời gian, loop về đầu nếu hết
     def update(self):
-        """Cập nhật animation, chuyển sang frame tiếp theo nếu đủ thời gian"""
         if not self.frames or self.is_finished:
             return
             
@@ -30,153 +31,144 @@ class Animation:
         if current_time - self.last_update_time > self.frame_duration:
             self.current_frame_index += 1
             
-            # Kiểm tra nếu đã hết frame
             if self.current_frame_index >= self.frame_count:
                 if self.loop:
-                    self.current_frame_index = 0  # Quay lại frame đầu
+                    self.current_frame_index = 0  # Loop về frame đầu
                 else:
                     self.current_frame_index = self.frame_count - 1  # Giữ frame cuối
-                    self.is_finished = True  # Đánh dấu đã kết thúc
+                    self.is_finished = True
             
             self.current_frame = self.frames[self.current_frame_index]
             self.last_update_time = current_time
     
+    # Reset về frame đầu tiên
     def reset(self):
-        """Reset animation về frame đầu tiên"""
         self.current_frame_index = 0
         self.current_frame = self.frames[0] if self.frames else None
         self.last_update_time = 0
         self.is_finished = False
     
+    # Bật/tắt chế độ loop
     def set_loop(self, loop):
-        """Đặt chế độ loop cho animation"""
         self.loop = loop
         if loop:
             self.is_finished = False
 
-# ============================================================
-# ĐỊNH NGHĨA CẤU HÌNH CHO TỪNG LOẠI ANIMATION
-# ============================================================
+
+# ================================================================================================
+# CẤU HÌNH ANIMATION — Định nghĩa folder, prefix, số frame cho từng loại
+# ================================================================================================
 
 ANIMATION_CONFIGS = {
-    # 1. IDLE - Đứng yên
+    # Idle: đứng yên (150ms/frame mặc định)
     "idle": {
         "folder": "knight_lv3_idle",
         "directions": {
-            "up": {"prefix": "knight_lv3_idle_up", "frames": 4},
-            "down": {"prefix": "knight_lv3_idle_down", "frames": 12},
-            "left": {"prefix": "knight_lv3_idle_left", "frames": 12},
+            "up":    {"prefix": "knight_lv3_idle_up",    "frames": 4},
+            "down":  {"prefix": "knight_lv3_idle_down",  "frames": 12},
+            "left":  {"prefix": "knight_lv3_idle_left",  "frames": 12},
             "right": {"prefix": "knight_lv3_idle_right", "frames": 12}
         },
         "default_frame_duration": 150
     },
     
-    # 2. WALK - Đi bộ
+    # Walk: đi bộ (100ms/frame)
     "walk": {
         "folder": "knight_lv3_walk",
         "directions": {
-            "up": {"prefix": "knight_lv3_walk_up", "frames": 6},
-            "down": {"prefix": "knight_lv3_walk_down", "frames": 6},
-            "left": {"prefix": "knight_lv3_walk_left", "frames": 6},
+            "up":    {"prefix": "knight_lv3_walk_up",    "frames": 6},
+            "down":  {"prefix": "knight_lv3_walk_down",  "frames": 6},
+            "left":  {"prefix": "knight_lv3_walk_left",  "frames": 6},
             "right": {"prefix": "knight_lv3_walk_right", "frames": 6}
         },
         "default_frame_duration": 100
     },
     
-    # 3. RUN - Chạy nhanh
+    # Run: chạy nhanh (70ms/frame)
     "run": {
         "folder": "knight_lv3_run",
         "directions": {
-            "up": {"prefix": "knight_lv3_run_up", "frames": 8},
-            "down": {"prefix": "knight_lv3_run_down", "frames": 8},
-            "left": {"prefix": "knight_lv3_run_left", "frames": 8},
+            "up":    {"prefix": "knight_lv3_run_up",    "frames": 8},
+            "down":  {"prefix": "knight_lv3_run_down",  "frames": 8},
+            "left":  {"prefix": "knight_lv3_run_left",  "frames": 8},
             "right": {"prefix": "knight_lv3_run_right", "frames": 8}
         },
         "default_frame_duration": 70
     },
     
-    # 4. ATTACK IDLE - Tấn công khi đứng yên
+    # Attack idle: tấn công khi đứng yên (50ms/frame)
     "attack_idle": {
         "folder": "knight_lv3_idle_attack",
         "directions": {
-            "up": {"prefix": "knight_lv3_idle_attack_up", "frames": 8},
-            "down": {"prefix": "knight_lv3_idle_attack_down", "frames": 8},
-            "left": {"prefix": "knight_lv3_idle_attack_left", "frames": 8},
+            "up":    {"prefix": "knight_lv3_idle_attack_up",    "frames": 8},
+            "down":  {"prefix": "knight_lv3_idle_attack_down",  "frames": 8},
+            "left":  {"prefix": "knight_lv3_idle_attack_left",  "frames": 8},
             "right": {"prefix": "knight_lv3_idle_attack_right", "frames": 8}
         },
         "default_frame_duration": 50
     },
     
-    # 5. ATTACK WALK - Tấn công khi đi bộ
+    # Attack walk: tấn công khi đi bộ (50ms/frame)
     "attack_walk": {
         "folder": "knight_lv3_walk_attack",
         "directions": {
-            "up": {"prefix": "knight_lv3_walk_attack_up", "frames": 8},
-            "down": {"prefix": "knight_lv3_walk_attack_down", "frames": 8},
-            "left": {"prefix": "knight_lv3_walk_attack_left", "frames": 8},
+            "up":    {"prefix": "knight_lv3_walk_attack_up",    "frames": 8},
+            "down":  {"prefix": "knight_lv3_walk_attack_down",  "frames": 8},
+            "left":  {"prefix": "knight_lv3_walk_attack_left",  "frames": 8},
             "right": {"prefix": "knight_lv3_walk_attack_right", "frames": 8}
         },
         "default_frame_duration": 50
     },
     
-    # 6. ATTACK RUN - Tấn công khi chạy
+    # Attack run: tấn công khi chạy (40ms/frame — nhanh nhất)
     "attack_run": {
         "folder": "knight_lv3_run_attack",
         "directions": {
-            "up": {"prefix": "knight_lv3_run_attack_up", "frames": 8},
-            "down": {"prefix": "knight_lv3_run_attack_down", "frames": 8},
-            "left": {"prefix": "knight_lv3_run_attack_left", "frames": 8},
+            "up":    {"prefix": "knight_lv3_run_attack_up",    "frames": 8},
+            "down":  {"prefix": "knight_lv3_run_attack_down",  "frames": 8},
+            "left":  {"prefix": "knight_lv3_run_attack_left",  "frames": 8},
             "right": {"prefix": "knight_lv3_run_attack_right", "frames": 8}
         },
         "default_frame_duration": 40
     },
     
-    # 7. DASH - Lướt nhanh
+    # Dash: lướt nhanh (40ms/frame)
     "dash": {
         "folder": "knight_lv3_dash01",
         "directions": {
-            "up": {"prefix": "knight_lv3_dash_up", "frames": 5},
-            "down": {"prefix": "knight_lv3_dash_down", "frames": 5},
-            "left": {"prefix": "knight_lv3_dash_left", "frames": 5},
+            "up":    {"prefix": "knight_lv3_dash_up",    "frames": 5},
+            "down":  {"prefix": "knight_lv3_dash_down",  "frames": 5},
+            "left":  {"prefix": "knight_lv3_dash_left",  "frames": 5},
             "right": {"prefix": "knight_lv3_dash_right", "frames": 5}
         },
         "default_frame_duration": 40
     },
     
-    # 8. HIT - Dính đòn (THÊM MỚI)
+    # Hit: dính đòn (80ms/frame)
     "hit": {
-        "folder": "knight_lv3_hurt",  # Bạn cần tạo thư mục này và thêm ảnh
+        "folder": "knight_lv3_hurt",
         "directions": {
-            "up": {"prefix": "knight_lv3_hurt_up", "frames": 5},
-            "down": {"prefix": "knight_lv3_hurt_down", "frames": 5},
-            "left": {"prefix": "knight_lv3_hurt_left", "frames": 5},
+            "up":    {"prefix": "knight_lv3_hurt_up",    "frames": 5},
+            "down":  {"prefix": "knight_lv3_hurt_down",  "frames": 5},
+            "left":  {"prefix": "knight_lv3_hurt_left",  "frames": 5},
             "right": {"prefix": "knight_lv3_hurt_right", "frames": 5}
         },
         "default_frame_duration": 80
     }
 }
 
-# ============================================================
-# LỚP QUẢN LÝ ANIMATION
-# ============================================================
+
+# ================================================================================================
+# CLASS ANIMATIONMANAGER — Load và cache animation, tạo đối tượng Animation
+# ================================================================================================
 
 class AnimationManager:
-    """Quản lý tất cả animations của player"""
-    
     def __init__(self, scale_factor=2.0):
         self.scale_factor = scale_factor
-        self.animations_cache = {}  # Cache để tránh load lại ảnh nhiều lần
+        self.animations_cache = {}  # Cache frame đã load để tránh load lại
         
+    # Load và scale 1 ảnh, trả về Surface trắng nếu lỗi
     def _load_and_scale_image(self, filepath):
-        """
-        Load và scale ảnh theo scale_factor
-        
-        Args:
-            filepath: Đường dẫn đến file ảnh
-            
-        Returns:
-            pygame.Surface: Ảnh đã được scale
-        """
         try:
             img = pygame.image.load(filepath).convert_alpha()
             original_size = img.get_size()
@@ -185,28 +177,15 @@ class AnimationManager:
             return pygame.transform.scale(img, new_size)
         except Exception as e:
             print(f"Error loading image {filepath}: {e}")
-            # Trả về surface trắng nếu không load được
             return pygame.Surface((32, 32), pygame.SRCALPHA)
     
+    # Load danh sách frame cho animation_type + direction (có cache)
     def load_animation(self, animation_type, direction):
-        """
-        Load animation dựa trên type và direction
-        
-        Args:
-            animation_type: Loại animation ("idle", "walk", "run", "attack_idle", 
-                           "attack_walk", "attack_run", "dash", "hit")
-            direction: Hướng ("up", "down", "left", "right")
-            
-        Returns:
-            list: Danh sách các frame ảnh đã load
-        """
         cache_key = f"{animation_type}_{direction}"
         
-        # Kiểm tra cache trước
         if cache_key in self.animations_cache:
             return self.animations_cache[cache_key]
         
-        # Lấy config từ ANIMATION_CONFIGS
         config = ANIMATION_CONFIGS.get(animation_type)
         if not config:
             raise ValueError(f"Unknown animation type: {animation_type}")
@@ -215,84 +194,66 @@ class AnimationManager:
         if not direction_config:
             raise ValueError(f"Unknown direction: {direction} for animation type: {animation_type}")
         
-        # Load frames
         frames = []
         folder = config["folder"]
         prefix = direction_config["prefix"]
         frame_count = direction_config["frames"]
         
+        # Load từng frame: {prefix}1.png → {prefix}{frame_count}.png
         for i in range(1, frame_count + 1):
             filename = f"{prefix}{i}.png"
             filepath = os.path.join("assets", "knight_lv3", folder, filename)
             scaled_img = self._load_and_scale_image(filepath)
             frames.append(scaled_img)
         
-        # Cache kết quả
         self.animations_cache[cache_key] = frames
         return frames
     
+    # Tạo đối tượng Animation từ type + direction
     def create_animation(self, animation_type, direction, frame_duration=None):
-        """
-        Tạo đối tượng Animation từ type và direction
-        
-        Args:
-            animation_type: Loại animation
-            direction: Hướng
-            frame_duration: Thời gian mỗi frame (ms), nếu None sẽ dùng default
-            
-        Returns:
-            Animation: Đối tượng Animation
-        """
         if frame_duration is None:
             config = ANIMATION_CONFIGS.get(animation_type, {})
             frame_duration = config.get("default_frame_duration", 90)
         
         frames = self.load_animation(animation_type, direction)
         
-        # Kiểm tra xem animation có cần loop không
+        # Hit animation luôn loop
         loop = True
         if animation_type == "hit":
-            loop = True  # Hit animation lặp lại trong thời gian hit
+            loop = True
         
         anim = Animation(frames, frame_duration)
         anim.loop = loop
         return anim
 
-# ============================================================
-# CÁC HÀM LOAD FRAMES (GIỮ NGUYÊN ĐỂ TƯƠNG THÍCH)
-# ============================================================
 
-# Tạo một instance AnimationManager duy nhất để tái sử dụng
+# ================================================================================================
+# HÀM LOAD FRAMES — Giữ nguyên để tương thích với code cũ
+# ================================================================================================
+
+# Instance duy nhất, scale x2
 _animation_manager = AnimationManager(scale_factor=2.0)
 
 def load_idle_frames(direction):
-    """Load frames đứng yên"""
     return _animation_manager.load_animation("idle", direction)
 
 def load_walk_frames(direction):
-    """Load frames đi bộ"""
     return _animation_manager.load_animation("walk", direction)
 
 def load_run_frames(direction):
-    """Load frames chạy nhanh"""
     return _animation_manager.load_animation("run", direction)
 
 def load_attack_idle_frames(direction):
-    """Load frames tấn công khi đứng yên"""
     return _animation_manager.load_animation("attack_idle", direction)
 
 def load_attack_walk_frames(direction):
-    """Load frames tấn công khi đi bộ"""
     return _animation_manager.load_animation("attack_walk", direction)
 
 def load_attack_run_frames(direction):
-    """Load frames tấn công khi chạy"""
     return _animation_manager.load_animation("attack_run", direction)
 
 def load_dash_frames(direction):
-    """Load frames dash (lướt)"""
     return _animation_manager.load_animation("dash", direction)
 
 def load_hit_frames(direction):
-    """Load frames hit (dính đòn) - THÊM MỚI"""
     return _animation_manager.load_animation("hit", direction)

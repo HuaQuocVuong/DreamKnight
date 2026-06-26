@@ -2,13 +2,13 @@ import pygame
 import os
 from knight1_animation import Animation
 
-# ================================================================================================
 # CẤU HÌNH ANIMATION CHO VAMPIRES1
-# ================================================================================================
-
+# Mô tả: Định nghĩa cấu trúc thư mục, tên file và số lượng frame cho từng loại animation
 VAMPIRES1_ANIMATION_CONFIGS = {
+    # Animation đứng yên (idle) - 4 frame cho mỗi hướng
+    # Sử dụng khi quái đứng yên không di chuyển
     "idle": {
-        "folder": "vampires1_idle",
+        "folder": "vampires1_idle", # Thư mục con chứa sprite
         "directions": {
             "up":    {"prefix": "vampires1_idle_up",    "frames": 4},
             "down":  {"prefix": "vampires1_idle_down",  "frames": 4},
@@ -16,6 +16,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
             "right": {"prefix": "vampires1_idle_right", "frames": 4},
         },
     },
+    # Animation đi bộ (walk) - 6 frame cho mỗi hướng
     "walk": {
         "folder": "vampires1_walk",
         "directions": {
@@ -25,6 +26,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
             "right": {"prefix": "vampires1_walk_right", "frames": 6},
         },
     },
+    # Animation chạy (run) - 8 frame cho mỗi hướng
     "run": {
         "folder": "vampires1_run",
         "directions": {
@@ -34,6 +36,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
             "right": {"prefix": "vampires1_run_right", "frames": 8},
         },
     },
+    # Animation tấn công (attack) - 9 frame cho mỗi hướng
     "attack": {
         "folder": "vampires1_attack",
         "directions": {
@@ -43,6 +46,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
             "right": {"prefix": "vampires1_attack_right", "frames": 9},
         },
     },
+    # Animation bị thương (hit) - 4 frame cho mỗi hướng
     "hit": {
         "folder": "vampires1_hurt",
         "directions": {
@@ -52,6 +56,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
             "right": {"prefix": "vampires1_hurt_right", "frames": 4},
         },
     },
+    # Animation chết (death) - 11 frame cho mỗi hướng
     "death": {
         "folder": "vampires1_death",
         "directions": {
@@ -64,6 +69,7 @@ VAMPIRES1_ANIMATION_CONFIGS = {
 }
 
 # Thời gian mỗi frame (ms) cho từng loại animation
+# Thời gian càng nhỏ, animation chạy càng nhanh
 FRAME_DURATIONS = {
     "idle":   100,
     "walk":   100,
@@ -77,18 +83,16 @@ FRAME_DURATIONS = {
 FALLBACK_COLOR = (128, 0, 128)  # tím
 
 
-# ================================================================================================
 # CLASS LOADER — tải tất cả animation cho Vampires1
-# ================================================================================================
-
+# Mô tả: Class chịu trách nhiệm load toàn bộ sprite animation từ thư mục assets
+# Sử dụng pattern Class Method để gọi trực tiếp không cần khởi tạo đối tượng
 class Vampires1AnimationLoader:
-    """
-    Tải toàn bộ animation của Vampires1 từ thư mục assets.
-    Trả về dict: { anim_type: { direction: Animation } }
-    """
+   
 
+    # Đường dẫn gốc đến thư mục chứa tất cả sprite của vampires1
     BASE_PATH = os.path.join("assets", "resource_vampires1_2_3", "vampires1")
 
+    # Tải tất cả animation theo VAMPIRES1_ANIMATION_CONFIGS.
     @classmethod
     def load_all(cls, scale_factor: float = 2.0) -> dict:
         """
