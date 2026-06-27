@@ -66,6 +66,7 @@ class Plant1(pygame.sprite.Sprite):
         # Chỉ số máu và sát thương — trung bình
         self.health         = 300      # Máu hiện tại
         self.contact_damage = 25       # Sát thương khi player chạm vào
+        self.attack_damage  = 20       # Sát thương khi tấn công (có thể điều chỉnh dễ dàng)
         self.max_health     = 300      # Máu tối đa
 
         # Thời gian cho trạng thái hit (bị thương) & death (chết)
@@ -108,15 +109,15 @@ class Plant1(pygame.sprite.Sprite):
     # ------------------------------------------------------------------
 
     def _load_sounds(self):
-        """Tải âm thanh từ thư mục 03_sounds/slime3 (Attack1, Attack2, hit, Death)"""
-        sound_path = os.path.join("03_sounds", "slime3")
+        """Tải âm thanh từ thư mục 03_sounds/plant (Attack1, Attack2, hit0, Death)"""
+        sound_path = os.path.join("03_sounds", "plant")
         try:
             # 2 âm thanh tấn công để luân phiên
             for i in range(1, 3):
                 path = os.path.join(sound_path, f"Attack{i}.mp3")
                 self.attack_sounds.append(pygame.mixer.Sound(path))
             # Âm thanh bị thương & chết
-            self.hit_sound   = pygame.mixer.Sound(os.path.join(sound_path, "hit.mp3"))
+            self.hit_sound   = pygame.mixer.Sound(os.path.join(sound_path, "hit0.mp3"))
             self.death_sound = pygame.mixer.Sound(os.path.join(sound_path, "Death.mp3"))
         except Exception as e:
             print(f"[Plant1] Lỗi load âm thanh: {e}")
@@ -345,13 +346,13 @@ class Plant1(pygame.sprite.Sprite):
             self.attack_sound_index = (self.attack_sound_index + 1) % len(self.attack_sounds)
         print(f"[Plant1] Bắt đầu tấn công (dist <= {self.attack_range}px)")
 
-    # Kết thúc tấn công: gây 10 sát thương nếu player còn trong phạm vi
+    # Kết thúc tấn công: gây sát thương nếu player còn trong phạm vi
     def _end_attack(self):
         self.state        = "idle" if not self.is_running else "run"
         self.is_attacking = False
         if self.direction in self.attack_anims:
             self.attack_anims[self.direction].reset()
-        # Gây 10 sát thương (cơ bản)
+        # Gây sát thương nếu player trong phạm vi attack_range * 1.3
         if self.player and not self.player.is_dead:
             import math
             plant_cx = self.x + self.width // 2
@@ -359,7 +360,8 @@ class Plant1(pygame.sprite.Sprite):
             px = self.player.x + self.player.width // 2
             py = self.player.y + self.player.height // 2
             if math.hypot(plant_cx - px, plant_cy - py) <= self.attack_range * 1.3:
-                self.player.take_damage(10)
+                # Sử dụng self.attack_damage thay vì hardcode 20
+                self.player.take_damage(self.attack_damage)
 
     # Tự động tắt trạng thái bất tử sau 500ms
     def _update_invincible(self, current_time):

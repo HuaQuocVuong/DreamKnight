@@ -65,6 +65,7 @@ class Slime3(pygame.sprite.Sprite):
         # Chỉ số máu và sát thương
         self.health         = 250      # Máu hiện tại
         self.contact_damage = 20       # Sát thương khi player chạm vào slime
+        self.attack_damage  = 40       # Sát thương khi tấn công (có thể điều chỉnh dễ dàng)
         self.max_health     = 250      # Máu tối đa
 
         # Thời gian cho trạng thái hit (bị thương) & death (chết)
@@ -351,7 +352,7 @@ class Slime3(pygame.sprite.Sprite):
         self.is_attacking = False
         if self.direction in self.attack_anims:
             self.attack_anims[self.direction].reset()
-        # Gây 10 sát thương nếu player trong phạm vi attack_range * 1.3
+        # Gây sát thương nếu player trong phạm vi attack_range * 1.3
         if self.player and not self.player.is_dead:
             import math
             slime_cx = self.x + self.width // 2
@@ -359,7 +360,8 @@ class Slime3(pygame.sprite.Sprite):
             px = self.player.x + self.player.width // 2
             py = self.player.y + self.player.height // 2
             if math.hypot(slime_cx - px, slime_cy - py) <= self.attack_range * 1.3:
-                self.player.take_damage(10)
+                # Sử dụng self.attack_damage thay vì hardcode 40
+                self.player.take_damage(self.attack_damage)
 
     # Tự động tắt trạng thái bất tử sau 500ms
     def _update_invincible(self, current_time):

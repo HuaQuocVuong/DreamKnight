@@ -181,6 +181,7 @@ class Player1(pygame.sprite.Sprite):
         self.dy = 0  # Vận tốc Y
         
         self.debug = DEBUG_MODE
+        
         self.attack_hitbox = None  # Hitbox tấn công (tạo khi attack)
 
         # HỆ THỐNG MÁU VÀ TIỀN
@@ -197,7 +198,7 @@ class Player1(pygame.sprite.Sprite):
         self.ghost_flicker = False  # Hiệu ứng nhấp nháy (0.5s cuối)
 
         # Chỉ số tấn công
-        self.damage = 15             # Sát thương cơ bản
+        self.damage = 15            # Sát thương cơ bản
         self.attack_range = 60       # Phạm vi tấn công
         self.attack_damage_level = 0 # Cấp nâng cấp damage
         self.attack_speed_level = 0  # Cấp nâng cấp tốc độ đánh

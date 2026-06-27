@@ -9,7 +9,7 @@ _sfx_sounds   = []
 
 # Volume mặc định 50%
 _music_volume = 0.5  # Nhạc nền
-_sfx_volume   = 0.5  # Hiệu ứng âm thanh
+_sfx_volume   = 0.8  # Hiệu ứng âm thanh
 
 # Danh sách voice NPC (tách riêng để có thể quản lý độc lập sau này)
 _npc_voices   = []

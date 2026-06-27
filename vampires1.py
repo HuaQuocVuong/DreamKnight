@@ -56,6 +56,7 @@ class Vampires1(pygame.sprite.Sprite):
         # Hệ thống máu và sát thương
         self.health     = 500       # Máu hiện tại
         self.contact_damage = 40    # Sát thương khi player chạm vào quái
+        self.attack_damage  = 60    # Sát thương khi tấn công (có thể điều chỉnh dễ dàng)
         self.max_health = 500       # Máu tối đa
 
         # Thời gian cho trạng thái bị thương và chết
@@ -376,7 +377,8 @@ class Vampires1(pygame.sprite.Sprite):
             px = self.player.x + self.player.width // 2
             py = self.player.y + self.player.height // 2
             if math.hypot(vampires1_cx - px, vampires1_cy - py) <= self.attack_range * 1.3:
-                self.player.take_damage(10)
+                # Sử dụng self.attack_damage thay vì hardcode 60
+                self.player.take_damage(self.attack_damage)
     
     # Cập nhật trạng thái bất tử: tự động tắt sau invincible_duration (500ms)
     # Bất tử giúp quái không bị đánh liên tục, tạo khoảng nghỉ giữa các lần nhận sát thương

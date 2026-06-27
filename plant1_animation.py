@@ -18,7 +18,7 @@ PLANT1_ANIMATION_CONFIGS = {
             "right": {"prefix": "plant1_idle_right", "frames": 4},
         },
     },
-    # Animation đi bộ — 6 frame, 100ms/frame, tốc độ PLAYER_SPEED * 0.4
+    # Animation đi bộ — 6 frame, 100ms/frame
     "walk": {
         "folder": "plant1_walk",
         "directions": {
@@ -28,7 +28,7 @@ PLANT1_ANIMATION_CONFIGS = {
             "right": {"prefix": "plant1_walk_right", "frames": 6},
         },
     },
-    # Animation chạy — 8 frame, 90ms/frame, tốc độ RUN_SPEED * 0.5
+    # Animation chạy — 8 frame, 90ms/frame
     "run": {
         "folder": "plant1_run",
         "directions": {

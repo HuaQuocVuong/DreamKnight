@@ -21,23 +21,25 @@ from config import SCREEN_WIDTH, SCREEN_HEIGHT, MAP_WIDTH, MAP_HEIGHT
 
 # Thứ tự các đợt quái sẽ xuất hiện
 WAVE_ORDER = [
+    #"vampire",   # Đợt 7: Vampire (boss)
+
     "slime1",    # Đợt 1: Slime cấp 1 (yếu nhất)
     "slime2",    # Đợt 2: Slime cấp 2 (trung bình)
     "slime3",    # Đợt 3: Slime cấp 3 (mạnh nhất)
     "plant1",    # Đợt 4: Plant cấp 1
     "plant2",    # Đợt 5: Plant cấp 2
     "plant3",    # Đợt 6: Plant cấp 3 (mạnh nhất)
-    "vampire",   # Đợt 7: Vampire (boss)
+    "vampire",   # Đợt 7: Vampire 
 ]
 
 # Số lượng quái mỗi đợt
 ENEMIES_PER_WAVE = 15
 
 # Số quái spawn mỗi batch
-ENEMIES_PER_BATCH = 3
+ENEMIES_PER_BATCH = 4
 
 # Thời gian giữa các batch (giây)
-SPAWN_INTERVAL = 2.0
+SPAWN_INTERVAL = 4.0
 
 # Khoảng cách spawn ngoài rìa camera (px)
 SPAWN_OFFSET = 80

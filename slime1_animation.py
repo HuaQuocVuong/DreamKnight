@@ -17,7 +17,7 @@ SLIME1_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime1_idle_right", "frames": 6},
         },
     },
-    # Animation đi bộ — 6 frame, 100ms/frame, tốc độ PLAYER_SPEED * 0.3
+    # Animation đi bộ — 6 frame, 100ms/frame
     "walk": {
         "folder": "slime1_walk",
         "directions": {
@@ -27,7 +27,7 @@ SLIME1_ANIMATION_CONFIGS = {
             "right": {"prefix": "slime1_walk_right", "frames": 6},
         },
     },
-    # Animation chạy — 8 frame, 60ms/frame, tốc độ RUN_SPEED * 0.4
+    # Animation chạy — 8 frame, 60ms/frame
     "run": {
         "folder": "slime1_run",
         "directions": {
